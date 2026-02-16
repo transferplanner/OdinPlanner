@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📘 기출 DB (gi)</title>
+
+<link id="themeLink" rel="stylesheet" href="">
+<script src="trial.js"></script>
+<script>
+        // 1. trial.js에서 저장된 '색상'을 가져오고
+        const theme = getSavedTheme()|| "pink";
+        // 2. 이 페이지의 '역할(check)'을 조합해서 경로 완성!
+        const themePath = `${theme}/gi.css`; 
+        document.getElementById("themeLink").href = themePath;
+    </script>
+
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="back" onclick="location.href='index.html'">← 메인 대시보드로 돌아가기</div>
+
+    <h1>📘 기출 DB</h1>
+  
+
+  <div class="topbar">
+    <button class="add-btn" id="addBtn">+ 새 기록 추가</button>
+    <div style="display:flex; align-items:center; gap:10px; background:#fff; padding:10px; border-radius:10px; box-shadow:var(--shadow);">
+      <span style="font-size:12px; font-weight:800; color:var(--pink-strong);">📊 눈금 설정:</span>
+      <input type="number" id="y-min" value="0"  placeholder="최소" style="width:60px; padding:4px;">
+      <span style="font-size:12px;">~</span>
+      <input type="number" id="y-max" value="100"  placeholder="최대" style="width:60px; padding:4px;">
+      <button type="button" onclick="renderChart()" style="background:var(--pink-strong); color:#fff; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-weight:900;">적용</button>
+    </div>
+  </div>
+
+  <div class="toggles">
+    <div class="pill" id="subjectPill">
+      <button class="tab active" data-subject="수학">수학</button>
+      <button class="tab" data-subject="영어">영어</button>
+    </div>
+
+    <div class="yearbox">
+      <label>년도</label>
+      <select id="yearSelect"></select>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <canvas id="giChart"></canvas>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:110px;">과목</th>
+          <th style="width:110px;">년도</th>
+          <th style="width:260px;">학교</th>
+          <th style="width:140px;">점수</th>
+          <th style="width:140px;">백분위</th>
+          <th style="width:90px;">삭제</th>
+        </tr>
+      </thead>
+      <tbody id="giBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const SCHOOL_COLORS = {
+  "서울대": "#0b3c5d",
+  "연세대": "#003876",
+  "고려대": "#8c1d18",
+  "서강대": "#c8102e",
+  "성균관대": "#8fc31f",
+  "한양대": "#0f4c81",
+  "중앙대": "#002b5c",
+  "경희대": "#6a1b3f",
+  "한국외대": "#00796b",
+  "시립대": "#2b6cb0",
+  "이화여대": "#0b6f4e",
+  "건국대": "#1f4d2b",
+  "동국대": "#e26a1f",
+  "홍익대": "#7b1fa2",
+  "숙명여대": "#1e5aa8",
+  "국민대": "#f5b400",
+  "숭실대": "#006d6f",
+  "세종대": "#9e1b32"
+  
+};
+
+const FALLBACK_PALETTE = [
+  "#ff8fa3","#ffd6a5","#cdb4db","#a2d2ff","#bde0fe","#caffbf",
+  "#9bf6ff","#ffc6ff","#fdffb6","#a0c4ff","#ffadad","#d0f4de",
+  "#bdb2ff","#f1c0e8","#8ecae6","#219ebc","#023047","#fb8500"
+];
+
+const GI_KEY = "gi_db_v2";
+let state = { subject: "수학", year: new Date().getFullYear() };
+let db = [];
+
+function uid(){
+  return Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+}
+function toNum(v){
+  const n = Number(String(v).trim());
+  return Number.isFinite(n) ? n : null;
+}
+function saveDB(){
+  localStorage.setItem(GI_KEY, JSON.stringify({ state, db }));
+}
+function loadDB(){
+  const raw = localStorage.getItem(GI_KEY);
+  if(!raw) return false;
+  try{
+    const parsed = JSON.parse(raw);
+    if(parsed?.db) db = parsed.db;
+    if(parsed?.state) state = parsed.state;
+    return true;
+  }catch(e){
+    console.warn("GI load fail:", e);
+    return false;
+  }
+}
+function escapeHtml(str){
+  return String(str ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function normSchool(name){
+  return String(name || "")
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(/대학교$/,"대")
+    .replace("대학교","대");
+}
+
+function getSchoolColor(rawName, index){
+  const key = normSchool(rawName);
+  if(SCHOOL_COLORS[key]) return SCHOOL_COLORS[key];
+  return FALLBACK_PALETTE[index % FALLBACK_PALETTE.length];
+}
+
+const tbody = document.getElementById("giBody");
+const yearSelect = document.getElementById("yearSelect");
+const addBtn = document.getElementById("addBtn");
+const subjectPill = document.getElementById("subjectPill");
+
+let chart = null;
+
+function renderSubjectPill(){
+  subjectPill.querySelectorAll(".tab").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.subject === state.subject);
+  });
+}
+
+function renderYearOptions(){
+  const years = new Set(db.map(x => x.year).filter(Boolean));
+  years.add(new Date().getFullYear());
+  const list = Array.from(years).sort((a,b)=>b-a);
+
+  yearSelect.innerHTML = list.map(y => `<option value="${y}">${y}</option>`).join("");
+  if(!list.includes(Number(state.year))) state.year = list[0] ?? new Date().getFullYear();
+  yearSelect.value = String(state.year);
+}
+
+function renderTable(){
+  const filtered = db.filter(x => x.subject === state.subject && x.year === Number(state.year));
+
+  if(filtered.length === 0){
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="padding:18px;color:#777;font-weight:800;">
+          아직 기록이 없어. “새 기록 추가” 눌러서 시작하자.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(row => `
+    <tr data-id="${row.id}">
+      <td>
+        <select class="cell-subject small">
+          <option ${row.subject==="수학"?"selected":""}>수학</option>
+          <option ${row.subject==="영어"?"selected":""}>영어</option>
+        </select>
+      </td>
+      <td>
+  <select class="cell-year small">
+    <option value="2026" ${row.year == 2026 ? 'selected' : ''}>2026</option>
+    <option value="2025" ${row.year == 2025 ? 'selected' : ''}>2025</option>
+    <option value="2024" ${row.year == 2024 ? 'selected' : ''}>2024</option>
+    <option value="2023" ${row.year == 2023 ? 'selected' : ''}>2023</option>
+    <option value="2022" ${row.year == 2022 ? 'selected' : ''}>2022</option>
+    <option value="2021" ${row.year == 2021 ? 'selected' : ''}>2021</option>
+    <option value="2020" ${row.year == 2020 ? 'selected' : ''}>2020</option>
+    <option value="2019" ${row.year == 2019 ? 'selected' : ''}>2019</option>
+    <option value="2018" ${row.year == 2018 ? 'selected' : ''}>2018</option>
+    <option value="2017" ${row.year == 2017 ? 'selected' : ''}>2017</option>
+    <option value="2016" ${row.year == 2016 ? 'selected' : ''}>2016</option>
+    <option value="2015" ${row.year == 2015 ? 'selected' : ''}>2015</option>
+  </select>
+</td>
+
+      <td>
+        <input class="cell-school school" type="text"
+          value="${escapeHtml(row.school ?? "")}"
+          placeholder="예: 건국대 / 서강대학교도 가능"/>
+      </td>
+      <td>
+        <input class="cell-score small" type="number" min="0" max="100" step="0.1"
+          value="${row.score ?? ""}" placeholder="예: 85"/>
+      </td>
+      <td>
+        <input class="cell-per small" type="number" min="0" max="100" step="0.1"
+          value="${row.percentile ?? ""}" placeholder="예: 92"/>
+      </td>
+      <td><button class="del-btn">삭제</button></td>
+    </tr>
+  `).join("");
+}
+
+function renderChart(){
+  const yMin = Number(document.getElementById('y-min').value) || 0;
+  const yMax = Number(document.getElementById('y-max').value) || 100;
+
+  const filtered = db
+    .filter(x => x.subject === state.subject && x.year === Number(state.year))
+    .filter(x => x.school && x.score !== null && x.score !== undefined);
+
+  const bySchool = new Map();
+  filtered.forEach(x => bySchool.set(normSchool(x.school), x.score));
+
+  const labels = Array.from(bySchool.keys());
+  const data   = labels.map(k => bySchool.get(k));
+  const colors = labels.map((school, i) => getSchoolColor(school, i));
+
+  if(!chart){
+    chart = new Chart(document.getElementById("giChart"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: `${state.subject} 기출 점수 (${state.year})`,
+          data,
+          backgroundColor: colors
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { min: yMin, max: yMax }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}` }
+          },
+          legend: { display: true }
+        }
+      }
+    });
+  } else {
+    chart.data.labels = labels;
+    chart.data.datasets[0].label = `${state.subject} 기출 점수 (${state.year})`;
+    chart.data.datasets[0].data = data;
+    chart.data.datasets[0].backgroundColor = colors;
+    // 차트 눈금 업데이트 로직 추가
+    chart.options.scales.y.min = yMin;
+    chart.options.scales.y.max = yMax;
+    chart.update();
+  }
+}
+
+function refreshAll(){
+  renderSubjectPill();
+  renderYearOptions();
+  renderTable();
+  renderChart();
+  refreshAccessStatus();
+  saveDB();
+}
+
+function addRow(){
+
+  if(!isPaidUser){
+
+    if (isTrialExpired()){
+      const currentCount = db.filter(x =>
+        x.subject === state.subject && x.year === Number(state.year)
+      ).length;
+
+      if (currentCount >= 2){
+        const lock = document.getElementById("lockBox");
+        if (lock) lock.style.display = "flex";
+        return;
+      }
+    }
+  }
+
+  db.push({
+    id: uid(),
+    subject: state.subject,
+    year: Number(state.year),
+    school: "",
+    score: null,
+    percentile: null
+  });
+  refreshAccessStatus();
+  refreshAll();
+}
+addBtn.addEventListener("click", addRow);
+
+subjectPill.addEventListener("click", (ev)=>{
+  const btn = ev.target.closest(".tab");
+  if(!btn) return;
+  state.subject = btn.dataset.subject;
+  refreshAccessStatus();
+  refreshAll();
+});
+
+yearSelect.addEventListener("change", ()=>{
+  state.year = Number(yearSelect.value);
+  refreshAccessStatus();
+  refreshAll();
+});
+
+tbody.addEventListener("change", (ev)=>{
+  const tr = ev.target.closest("tr");
+  if(!tr) return;
+  const id = tr.dataset.id;
+  const item = db.find(x => x.id === id);
+  if(!item) return;
+
+  if(ev.target.classList.contains("cell-year")){
+    item.year = toNum(ev.target.value) ?? item.year;
+  }
+  if(ev.target.classList.contains("cell-school")){
+    item.school = ev.target.value;
+  }
+  if(ev.target.classList.contains("cell-score")){
+    item.score = toNum(ev.target.value);
+  }
+  if(ev.target.classList.contains("cell-per")){
+    item.percentile = toNum(ev.target.value);
+  }
+  refreshAccessStatus();
+  refreshAll();
+});
+
+tbody.addEventListener("change", (ev)=>{
+  const tr = ev.target.closest("tr");
+  if(!tr) return;
+  const id = tr.dataset.id;
+  const item = db.find(x => x.id === id);
+  if(!item) return;
+
+  if(ev.target.classList.contains("cell-subject")){
+    item.subject = ev.target.value;
+    refreshAccessStatus();
+    refreshAll();
+  }
+});
+
+tbody.addEventListener("click", (ev)=>{
+  if(!ev.target.classList.contains("del-btn")) return;
+  const tr = ev.target.closest("tr");
+  if(!tr) return;
+  const id = tr.dataset.id;
+  db = db.filter(x => x.id !== id);
+  refreshAccessStatus();
+  refreshAll();
+});
+
+(function init(){
+  const ok = loadDB();
+  state.year = Number(state.year) || new Date().getFullYear();
+
+  if(!ok){
+    db = [
+      { id: uid(), subject:"수학", year: state.year, school:"건국대", score:85, percentile:null },
+      { id: uid(), subject:"수학", year: state.year, school:"서강대", score:97, percentile:null },
+      { id: uid(), subject:"수학", year: state.year, school:"성균관대", score:96.2, percentile:null },
+      { id: uid(), subject:"영어", year: state.year, school:"시립대", score:93, percentile:null }
+    ];
+  }
+
+  refreshAccessStatus();
+  refreshAll();
+})();
+</script>
+<div id="lockBox">
+  <div class="lock-inner">
+    <div class="lock-icon">🌸</div>
+    <h2>체험판 만료 알림</h2>
+    <p>사장님의 플래너를 무제한으로 이용하려면<br>정식 버전으로 전환이 필요합니다.</p>
+    
+    <button id="showInputBtn" onclick="handleAllPayments('transfer_planner.premium_upgrade')">평생 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_monthly_purchase')">1개월 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_three_month_purchase')">3개월 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_six_month_purchase')">6개월 이용권 결제하기 🌸</button>
+    
+    <button class="btn-close" onclick="document.getElementById('lockBox').style.display='none'">나중에 할게요</button>
+  </div>
+</div>
+</body>
+</html>

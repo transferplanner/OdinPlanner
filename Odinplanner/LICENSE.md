@@ -1,0 +1,64 @@
+Odin Planner Proprietary License & Terms of Use
+
+Copyright (c) 2026 Seoyeon. All rights reserved.
+
+[ENGLISH VERSION]
+
+1. OWNERSHIP OF INTELLECTUAL PROPERTY
+All rights, titles, and interests in and to the 'Odin Planner' software, including but not limited to its unique logic, structures, and all associated assets, are owned exclusively by the copyright holder, Seoyeon.
+
+2. PROTECTED ASSETS
+
+Proprietary academic strategy logic for transfer and entrance exams.
+
+'Route' brand character and all original design illustrations.
+
+Official Odin Planner logos and visual identity.
+
+All internal data analysis algorithms (including Z-Score logic).
+
+3. RESTRICTIONS ON USE
+Any unauthorized use, reproduction, or distribution of this software and its assets is strictly prohibited without express written consent from the copyright holder. You may NOT:
+
+Copy, redistribute, or display any part of this work.
+
+Modify or create derivative works based on this software.
+
+Use this work for any commercial purposes or resale.
+
+Remove or alter any copyright notices.
+
+4. LEGAL ENFORCEMENT
+Violation of these terms may result in severe civil and criminal penalties under applicable copyright laws. For inquiries regarding usage, please contact the copyright holder.
+
+[한국어 버전]
+
+오딘 플래너 (Odin Planner) 저작권 및 이용 규정
+
+본 소프트웨어와 관련 문서, 그리고 그 안에 포함된 모든 고유 자산에 대한 권리는 저작권자 **'서연'**에게 있습니다.
+
+1. 보호 대상 목록
+
+오딘 편입 플래너 및 수능 플래너의 독자적인 로직과 구조
+
+'루트(Route)' 브랜드 캐릭터 및 디자인 자산
+
+오딘 플래너 공식 로고 및 시각적 아이덴티티
+
+서비스 내에 포함된 모든 데이터 분석 알고리즘 (Z-Score 로직 등)
+
+2. 이용 제한 규정
+본 소프트웨어와 자산은 저작권자의 명시적인 서면 동의 없이 다음과 같은 행위를 할 수 없습니다:
+
+본 저작물의 전부 또는 일부를 복제, 배포, 전시하는 행위
+
+본 저작물을 수정하거나 이를 기반으로 한 2차적 저작물을 작성하는 행위
+
+본 저작물을 상업적 목적으로 이용하거나 판매하는 행위
+
+저작권 표시를 삭제하거나 변경하는 행위
+
+위 사항을 위반할 경우 관련 법령에 따라 민형사상의 책임을 물을 수 있습니다.
+
+Last Updated: 2026-02-16
+Contact: transferplanner0126@gmail.com

@@ -1,0 +1,7 @@
+{
+    "name" : "편입플래너 v1",
+    "short_name":"편입플래너",
+    "start_url":"/transfer-planner.html",
+    "display": "standalone",
+    "background_color": "#ffc0cb"
+}

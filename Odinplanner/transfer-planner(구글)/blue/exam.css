@@ -1,0 +1,193 @@
+
+  :root{
+  /* ✅ 블루톤 통일 */
+  --bg:#f5f8fa;         /* 메인 배경 */
+  --card:#ffffff;       /* 카드 배경 */
+  --main:#4a90e2;       /* 메인 포인트(버튼/강조) */
+  --soft:#eaf4f8;       /* 아주 연한 블루(트랙/배경) */
+  --focus:#dceeff;      /* 탭 활성/포커스 */
+  --text:#2f3437;
+  --muted:#7a8690;
+  --line:#e3e8ed;
+  --shadow:0 6px 18px rgba(0,0,0,.05);
+  --radius:16px;
+}
+
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  padding:28px 18px;
+  background:var(--bg);
+  font-family:sans-serif;
+  color:var(--text);
+}
+.container{ max-width:980px; margin:0 auto; }
+.back{
+  color:var(--muted);
+  font-size:14px;
+  text-decoration:none;
+  display:block;
+  margin-bottom:15px;
+  font-weight:900;
+}
+.title{ font-size:28px; font-weight:900; margin-bottom:18px; }
+
+/* 섹션 카드 */
+.sectionCard{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+  margin-bottom:16px;
+}
+.sectionHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+.sectionTitle{
+  font-weight:900;
+  font-size:16px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* ✅ 뱃지: 핑크 제거 -> 블루 */
+.badge{
+  font-size:11px;
+  color:var(--main);
+  background:var(--focus);
+  padding:4px 10px;
+  border-radius:10px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+/* 목표 바 박스 */
+.goalBarBox{
+  margin-top:10px;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:#fff;
+}
+.goalBarTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.goalBarTitle{ font-weight:900; font-size:14px; color:var(--text); }
+.goalBarMeta{ font-weight:900; font-size:12px; color:var(--muted); white-space:nowrap; }
+
+.goalInputs{
+  display:grid;
+  grid-template-columns:44px 1fr 44px 1fr;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
+  font-weight:900;
+  font-size:13px;
+}
+.goalInputs input{
+  height:38px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  padding:0 10px;
+  font-weight:900;
+  outline:none;
+  color:var(--text);
+  background:#fff;
+}
+.goalInputs input:focus{
+  border-color: rgba(74,144,226,.65);
+  box-shadow: 0 0 0 4px rgba(74,144,226,.15);
+}
+.currentText{
+  height:38px;
+  display:flex;
+  align-items:center;
+  padding:0 10px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:#fbfcfe;
+  font-weight:900;
+}
+
+/* ✅ 트랙/필: 블루톤 */
+.goalTrack{
+  height:12px;
+  border-radius:999px;
+  background:var(--soft);
+  border:1px solid var(--line);
+  overflow:hidden;
+}
+.goalFill{
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  background:linear-gradient(90deg, #9ec5ff, #4a90e2);
+  transition:width .25s ease;
+}
+
+.smallHint{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:800;
+  line-height:1.5;
+}
+
+/* ✅ 과목 토글: 블루 */
+.pill-toggle{
+  display:inline-flex;
+  background:#ffffff;
+  padding:4px;
+  border-radius:999px;
+  margin-bottom:20px;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+}
+.pill-toggle button{
+  border:none;
+  background:transparent;
+  padding:8px 16px;
+  border-radius:999px;
+  font-weight:900;
+  cursor:pointer;
+  color:var(--muted);
+  transition:all .2s;
+}
+.pill-toggle button.active{
+  background:var(--focus);
+  color:var(--main);
+}
+
+/* ✅ 하단 버튼: 블루 */
+.button-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:18px;
+}
+.edit-link{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+  background:var(--main);
+  color:#fff;
+  border-radius:14px;
+  padding:16px;
+  font-weight:900;
+  box-shadow:0 10px 22px rgba(74,144,226,.18);
+}
+
+
+
+  @media (max-width:720px){ .goalInputs{ grid-template-columns:44px 1fr; } .button-row{ grid-template-columns:1fr; } }

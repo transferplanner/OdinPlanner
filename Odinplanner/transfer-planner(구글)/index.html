@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Dashboard - Final Success</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+<link id="themeLink" rel="stylesheet" href="">
+<script src="trial.js"></script>
+<script>
+        // 1. trial.js에서 저장된 '색상'을 가져오고
+        const theme = getSavedTheme()|| "pink";
+        // 2. 이 페이지의 '역할(check)'을 조합해서 경로 완성!
+        const themePath = `${theme}/index.css`; 
+        document.getElementById("themeLink").href = themePath;
+    </script>
+
+  <link rel="manifest" href="manifest.JSON">
+</head>
+
+
+<body>
+  <div class="header-banner"></div>
+  <div class="container">
+    <section class="title-section">
+     <img src="Odin_logo.png" style="height: 90px !important; width: auto; object-fit: contain; flex-shrink: 0;" alt="Odin Planner Logo">
+      <h1 style="margin:0; font-size:24px;">transfer-planner</h1>
+    </section>
+
+    <div class="main-layout">
+      <div class="left-col">
+        <div class="block pink-block" style="margin-bottom:20px; min-height: 200px;">
+          <div class="calendar-header">
+            <span onclick="moveMonth(-1)" style="cursor:pointer; margin-right:10px;">◀</span>
+            <span id="monthYear"></span>
+            <span onclick="moveMonth(1)" style="cursor:pointer; margin-left:10px;">▶</span>
+          </div>
+  
+        <div id="calendarDays" class="calendar-grid"></div>
+      </div>
+        <div class="block">
+          <div class="timer-header">
+            <h3 style="margin:0; font-size:15px;">⏱️ 타이머</h3>
+            <div class="mode-settings">
+              <button class="mode-btn" onclick="setTimer(25, 5)">25/5</button>
+              <button class="mode-btn" onclick="setTimer(45, 15)">45/15</button>
+             </div>
+          </div>
+
+  <div class="time-display" id="display">00:00:00</div>
+
+  <div class="timer-btns">
+    <button onclick="startTimer()">Start</button>
+    <button onclick="pauseTimer()" style="background:#eee; color:#666; margin-left:5px;">Pause</button>
+    <button onclick="resetTimer()" style="background:#fff0f3; color:var(--main-pink); margin-left:5px;">Reset</button>
+  </div>
+</div>
+
+
+        <div class="theme-selector">
+  <button class="theme-dot pink" data-theme="pink"></button>
+  <button class="theme-dot purple" data-theme="purple"></button>
+  <button class="theme-dot blue" data-theme="blue" ></button>
+  <button class="theme-dot green" data-theme="green"></button>
+</div>
+      </div>
+
+      <div class="mid-col" style="display:flex; flex-direction:column; gap:20px;">
+        <div class="block pink-block">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="margin:0; font-size:15px;">🏆 성취 DB</h3>
+            <a href="achievement.html" class="move-btn">이동 ➔</a>
+          </div>
+          <div style="background:white; flex:1; border-radius:12px; padding:15px; display:flex; flex-direction:column; justify-content:center; gap:12px; border:1px solid #f0f0f0;">
+            <div style="text-align:center;">
+              <div style="font-size:11px; color:#888;">오늘의 순공 시간</div>
+              <div id="achieve-time" style="font-size:24px; font-weight:bold; color:var(--main-pink);">00:00:00</div>
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:5px;">
+                <span>목표 달성률</span><span id="achieve-percent" style="font-weight:bold;">0%</span>
+              </div>
+              <div style="background:#eee; height:10px; border-radius:5px; overflow:hidden;">
+                <div id="achieve-bar" style="width:0%; background:var(--main-pink); height:100%; transition:0.5s;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="db-card locked">
+        <div class="block pink-block">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h3 style="margin:0; font-size:15px;">🎯 목표 DB</h3>
+              <button id="majorToggle" onclick="toggleMajor()"
+                style="font-size:10px; padding:2px 8px; border-radius:10px; border:1px solid var(--main-pink); background:white; color:var(--main-pink); cursor:pointer; font-weight:900;">
+                수학
+              </button>
+            </div>
+            <a href="goal.html" class="move-btn">이동 ➔</a>
+          </div>
+          
+
+          <div style="background:white; flex:1; border-radius:12px; padding:12px; display:flex; flex-direction:column; justify-content:center; border:1px solid #f0f0f0;">
+            <div style="text-align:center; margin-bottom:8px;">
+              <div style="font-size:10px; color:#888; margin-bottom:4px;">현재 가장 유리한 대학교</div>
+              <div style="font-size:20px; font-weight:800; color:#1f2a44;"><span id="mainBestSchoolName"></span></div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+              <div style="background:var(--point-pink); padding:8px; border-radius:8px; text-align:center;">
+                <div style="font-size:9px; color:#888;">기출 평균</div>
+                <div id="mainSchoolAvg" style="font-size: 16px; font-weight: bold;">-</div>
+                <div id="mainAvgDiff" style="font-size:9px; color:var(--main-pink); font-weight:bold;">-</div>
+              </div>
+              <div style="background:var(--point-pink); padding:8px; border-radius:8px; text-align:center;">
+                <div style="font-size:9px; color:#888;">표준편차</div>
+                <div id="mainSchoolStd" style="font-size:16px; font-weight:bold;">-</div>
+                <div style="font-size:9px; color:#666;">변동폭 일정</div>
+              </div>
+            </div>
+            <p style="margin:8px 0 0; font-size:9px; color:#999; text-align:center;">※ 최근 3개년 기출 데이터 기반 추정</p>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <div class="right-col">
+        <div class="block" style="height: 100%;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="color:var(--main-pink); margin:0; font-size:15px;">🕒 Tracker</h3>
+          </div>
+          <div style="display: flex; gap: 4px; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+            <select id="s-hour"></select>
+            <select id="s-min">
+              <option value="0">00</option><option value="10">10</option>
+              <option value="20">20</option><option value="30">30</option>
+              <option value="40">40</option><option value="50">50</option>
+            </select>
+            <span style="font-size:10px;">~</span>
+            <select id="e-hour"></select>
+            <select id="e-min">
+              <option value="0">00</option><option value="10">10</option>
+              <option value="20">20</option><option value="30">30</option>
+              <option value="40">40</option><option value="50">50</option>
+            </select>
+          </div>
+          <input type="text" id="t-sub" placeholder="과목 입력" style="width:100%; margin-bottom:5px;">
+          <button onclick="addTimeBlock()" style="width:100%; background:var(--main-pink); color:white; border:none; padding:7px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">기록 추가</button>
+          <div style="flex:1; overflow-y:auto; border-top:1px solid #eee; margin-top:10px;">
+            <table class="tracker-table">
+              <thead><tr><th>H</th><th>00</th><th>10</th><th>20</th><th>30</th><th>40</th><th>50</th></tr></thead>
+              <tbody id="tracker-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-layout">
+      <div class ="db-card locked">
+      <div class="block pink-block">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h3 style="margin:0; font-size:15px;">📝 체크 DB</h3>
+            <button id="checkSubject" onclick="toggleMajor()" style="font-size:11px; padding:3px 10px; border-radius:10px; border:1px solid var(--main-pink); background:white; color:var(--main-pink); cursor:pointer; font-weight:900;">수학</button>
+          </div>
+          <a href="check.html" class="move-btn">이동 ➔</a>
+        </div>
+        
+
+        <div style="display:flex; gap:10px; flex:1;">
+          <div style="flex:1; background:white; padding:15px; border-radius:12px; display:flex; flex-direction:column; align-items:center; gap:8px; border:1px solid #f0f0f0;">
+            <div style="font-size:10px; color:#888;">🔍 자주 실수하는 유형</div>
+            <div id="main-top-error" style="font-weight:bold; color:var(--main-pink); font-size:13px;">기록 없음</div>
+            <div style="width:65px; height:65px;"><canvas id="main-error-chart"></canvas></div>
+          </div>
+          <div style="flex:1; background:white; padding:15px; border-radius:12px; display:flex; flex-direction:column; align-items:center; gap:8px; border:1px solid #f0f0f0;">
+            <div style="font-size:10px; color:#888;">⚠️ 집중 필요 파트</div>
+            <div id="main-top-part" style="font-weight:bold; color:var(--main-pink); font-size:13px;">기록 없음</div>
+            <div style="width:65px; height:65px;"><canvas id="main-part-chart"></canvas></div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <div class = "db-card locked">
+      <div class="block pink-block">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h3 style="margin:0; font-size:15px;">📊 시험 DB </h3>
+            <button id="examSubject" onclick="toggleMajor()" style="font-size:11px; padding:3px 10px; border-radius:10px; border:1px solid var(--main-pink); background:white; color:var(--main-pink); cursor:pointer; font-weight:900;">수학</button>
+          </div>
+          <a href="exam.html" class="move-btn">이동 ➔</a>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px; flex:1;">
+          <div style="background:white; padding:12px; border-radius:10px; border:1px solid #f0f0f0;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:8px;">
+              <span style="font-weight:bold;">📔 모의고사</span>
+              <span id="main-mock-score-info" style="font-size:10px; color:#666;">연결 중...</span>
+            </div>
+            <div style="background:#eee; height:8px; border-radius:4px; overflow:hidden;">
+              <div id="main-mock-bar" style="width:0%; background:var(--main-pink); height:100%; transition: 0.5s;"></div>
+            </div>
+          </div>
+          <div style="background:white; padding:12px; border-radius:10px; border:1px solid #f0f0f0;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:8px;">
+              <span style="font-weight:bold;">📊 기출 평균</span>
+              <span id="main-past-score-info" style="font-size:10px; color:#666;">연결 중...</span>
+            </div>
+            <div style="background:#eee; height:8px; border-radius:4px; overflow:hidden;">
+              <div id="main-past-bar" style="width:0%; background:var(--main-pink); height:100%; transition: 0.5s;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script src = "goal.html"></script>
+  <script>
+    // 🌸 기본 과목
+    let currentMajor = "수학";
+
+    function toggleMajor() {
+      currentMajor = (currentMajor === "수학") ? "영어" : "수학";
+
+      const majorBtn = document.getElementById('majorToggle');
+      const checkBtn = document.getElementById('checkSubject');
+      const examBtn  = document.getElementById('examSubject');
+
+      if(majorBtn) majorBtn.innerText = currentMajor;
+      if(checkBtn) checkBtn.innerText = currentMajor;
+      if(examBtn)  examBtn.innerText  = currentMajor;
+
+      syncCheckData();
+      syncMainExamData();   // ✅ 여기 그대로
+      renderMainBest();
+    }
+
+    /* 타이머 */
+    /* 🧱 사장님을 위한 완전판 코드: 모바일에서도 찰떡같이 붙습니다! */
+
+/* 🧱 모바일 터치 지연 없이 바로 반응하는 완전판 */
+
+/* 🧱 사장님, 이건 무조건 떠야 합니다. 모든 방해 요소를 제거했어요. */
+
+// ===========================
+// ✅ Timer (Mobile-safe) Full
+// - prompt() 제거: WebView에서 입력 씹힘 방지
+// - 디자인(HTML/CSS) 손대지 않음: JS로 오버레이만 잠깐 생성
+// ===========================
+
+let timerInterval = null;
+let totalSeconds = 0;
+let nextBreakSeconds = 0;
+
+const $display = document.getElementById("display");
+
+// 1) 표시 영역 클릭하면 시간 설정 UI(오버레이) 열기
+if ($display) {
+  $display.style.cursor = "pointer";
+  $display.addEventListener("click", () => openTimerSetOverlay());
+}
+
+// 2) 타이머 시작/일시정지/리셋 (기존 버튼에서 그대로 호출 가능)
+function startTimer() {
+  // 0초면 당연히 안 움직이니까: 안내를 명확히
+  if (totalSeconds <= 0) {
+    alert("먼저 시간을 설정해줘! (시간 표시를 눌러서 설정 가능)");
+    return;
+  }
+  if (timerInterval) return;
+
+  timerInterval = setInterval(() => {
+    totalSeconds--;
+    if (totalSeconds <= 0) {
+      totalSeconds = 0;
+      updateTimerDisplay();
+      pauseTimer();
+     
+     if (nextBreakSeconds > 0) {
+        alert("🌸 집중 끝! 이제 휴식 시간 시작이야! 🌸");
+        totalSeconds = nextBreakSeconds;
+        nextBreakSeconds = 0; // 휴식 모드 해제 (일회용 예약권 사용)
+        updateTimerDisplay();
+    } else {
+        alert("🌸 고생했어! 타이머가 종료되었습니다. 🌸");
+    }
+      return;
+    }
+    updateTimerDisplay();
+  }, 1000);
+
+  updateTimerDisplay();
+}
+
+function pauseTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function resetTimer() {
+  pauseTimer();
+  totalSeconds = 0;
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  if (!$display) return;
+
+  if (!Number.isFinite(totalSeconds) || totalSeconds < 0) totalSeconds = 0;
+
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+
+  $display.innerText =
+    `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+// 3) 모바일에서도 100% 동작하는 "시간 설정 오버레이"
+function openTimerSetOverlay() {
+  // 이미 떠 있으면 중복 생성 방지
+  if (document.getElementById("timerSetOverlay")) return;
+
+  // 현재 표시값을 기본값으로 가져오기
+  const cur = secondsToHMS(totalSeconds);
+  const defaultH = cur.h;
+  const defaultM = cur.m;
+  const defaultS = cur.s;
+
+  // 오버레이(반투명 배경)
+  const overlay = document.createElement("div");
+  overlay.id = "timerSetOverlay";
+  overlay.style.position = "fixed";
+  overlay.style.left = "0";
+  overlay.style.top = "0";
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "rgba(0,0,0,0.45)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = "999999";
+
+  // 카드 박스
+  const box = document.createElement("div");
+  box.style.width = "min(92vw, 360px)";
+  box.style.background = "#fff";
+  box.style.borderRadius = "16px";
+  box.style.padding = "16px";
+  box.style.boxShadow = "0 10px 30px rgba(0,0,0,0.2)";
+  box.style.fontFamily = "inherit";
+
+  // 제목
+  const title = document.createElement("div");
+  title.innerText = "집중 시간 설정";
+  title.style.fontSize = "16px";
+  title.style.fontWeight = "800";
+  title.style.marginBottom = "10px";
+
+  // 설명
+  const desc = document.createElement("div");
+  desc.innerText = "시/분/초를 입력해줘 (예: 00:50:00)";
+  desc.style.fontSize = "13px";
+  desc.style.opacity = "0.75";
+  desc.style.marginBottom = "12px";
+
+  // 입력 줄
+  const row = document.createElement("div");
+  row.style.display = "flex";
+  row.style.gap = "8px";
+  row.style.alignItems = "center";
+  row.style.marginBottom = "12px";
+
+  const hInput = makeNumberInput("시", defaultH, 0, 23);
+  const mInput = makeNumberInput("분", defaultM, 0, 59);
+  const sInput = makeNumberInput("초", defaultS, 0, 59);
+
+  row.appendChild(hInput.wrap);
+  row.appendChild(mInput.wrap);
+  row.appendChild(sInput.wrap);
+
+  // 버튼 줄
+  const btnRow = document.createElement("div");
+  btnRow.style.display = "flex";
+  btnRow.style.gap = "8px";
+  btnRow.style.justifyContent = "flex-end";
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.innerText = "취소";
+  cancelBtn.style.padding = "10px 12px";
+  cancelBtn.style.borderRadius = "12px";
+  cancelBtn.style.border = "1px solid rgba(0,0,0,0.15)";
+  cancelBtn.style.background = "#fff";
+  cancelBtn.style.fontWeight = "700";
+  cancelBtn.addEventListener("click", () => overlay.remove());
+
+  const okBtn = document.createElement("button");
+  okBtn.type = "button";
+  okBtn.innerText = "설정";
+  okBtn.style.padding = "10px 12px";
+  okBtn.style.borderRadius = "12px";
+  okBtn.style.border = "none";
+  okBtn.style.background = "#111";
+  okBtn.style.color = "#fff";
+  okBtn.style.fontWeight = "800";
+
+  okBtn.addEventListener("click", () => {
+    const hh = clampInt(hInput.input.value, 0, 23);
+    const mm = clampInt(mInput.input.value, 0, 59);
+    const ss = clampInt(sInput.input.value, 0, 59);
+
+    const next = (hh * 3600) + (mm * 60) + ss;
+
+    // 0초 입력하면 그냥 0으로 두되, UX상 안내
+    totalSeconds = Number.isFinite(next) ? next : 0;
+    updateTimerDisplay();
+
+    // 실행 중이면(카운트중) 시간 바꿨을 때 즉시 반영되게 유지
+    // (원하면 pauseTimer()를 넣어서 바꿀 때 멈추게 할 수도 있음)
+
+    overlay.remove();
+  });
+
+  btnRow.appendChild(cancelBtn);
+  btnRow.appendChild(okBtn);
+
+  // 바깥 클릭 시 닫기
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+
+  // 조립
+  box.appendChild(title);
+  box.appendChild(desc);
+  box.appendChild(row);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  // 포커스
+  mInput.input.focus();
+}
+
+// 유틸: 입력 박스 만들기
+function makeNumberInput(label, value, min, max) {
+  const wrap = document.createElement("div");
+  wrap.style.flex = "1";
+  wrap.style.display = "flex";
+  wrap.style.flexDirection = "column";
+  wrap.style.gap = "6px";
+
+  const lab = document.createElement("div");
+  lab.innerText = label;
+  lab.style.fontSize = "12px";
+  lab.style.fontWeight = "800";
+  lab.style.opacity = "0.75";
+
+  const input = document.createElement("input");
+  input.type = "number";
+  input.inputMode = "numeric";
+  input.min = String(min);
+  input.max = String(max);
+  input.value = String(value ?? 0);
+  input.style.padding = "10px 12px";
+  input.style.borderRadius = "12px";
+  input.style.border = "1px solid rgba(0,0,0,0.15)";
+  input.style.fontSize = "14px";
+  input.style.fontWeight = "800";
+  input.style.outline = "none";
+
+  // 입력 제한(이상한 값 방지)
+  input.addEventListener("input", () => {
+    const v = clampInt(input.value, min, max);
+    input.value = String(v);
+  });
+
+  wrap.appendChild(lab);
+  wrap.appendChild(input);
+
+  return { wrap, input };
+}
+
+function clampInt(v, min, max) {
+  const n = Number(String(v).replace(/[^\d]/g, ""));
+  if (!Number.isFinite(n)) return min;
+  return Math.min(max, Math.max(min, Math.floor(n)));
+}
+
+function secondsToHMS(sec) {
+  const s = Math.max(0, Number(sec) || 0);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const r = s % 60;
+  return { h, m, s: r };
+}
+
+// 최초 표시 업데이트 (페이지 로드 시)
+updateTimerDisplay();
+
+// --- 기존 코드들 (openTimerSetOverlay 등)은 그대로 두세요 ---
+
+function setTimer(focusMin, breakMin) {
+  pauseTimer(); 
+  
+  // 1. 집중 시간 세팅
+  totalSeconds = focusMin * 60; 
+  
+  // 2. 휴식 시간도 미리 기억해둬요 (5분이나 15분)
+  nextBreakSeconds = breakMin * 60; 
+  
+  updateTimerDisplay();
+}
+// ✅ 버튼 클릭 시 시간을 바로 세팅해주는 함수 (새로 추가)
+// 서연이가 설정한 휴식 시간을 기억해둘 상자예요.
+
+    /* 트래커 */
+    function initTrackerUI() {
+      const sH = document.getElementById('s-hour'), eH = document.getElementById('e-hour');
+      sH.innerHTML = eH.innerHTML = "";
+      for (let i = 5; i <= 24; i++) {
+        const hStr = String(i).padStart(2, '0');
+        sH.innerHTML += `<option value="${i}">${hStr}시</option>`;
+        eH.innerHTML += `<option value="${i}">${hStr}시</option>`;
+      }
+      sH.value = "9"; eH.value = "10";
+
+      const body = document.getElementById('tracker-body');
+      body.innerHTML = '';
+      const savedData = JSON.parse(localStorage.getItem('tracker_data') || '{}');
+
+      for(let h=5; h<=24; h++){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<th>${String(h).padStart(2, '0')}</th>`;
+        for(let m=0; m<60; m+=10){
+          const td = document.createElement('td');
+          const id = `t-${String(h).padStart(2, '0')}-${m}`;
+          td.id = id;
+          if(savedData[id]) td.style.background = savedData[id];
+          td.onclick = function(){
+            this.style.background = this.style.background ? '' : 'var(--main-pink)';
+            saveTracker();
+          };
+          tr.appendChild(td);
+        }
+        body.appendChild(tr);
+      }
+      saveTracker();
+    }
+
+    function addTimeBlock() {
+      const sh = parseInt(document.getElementById('s-hour').value),
+            eh = parseInt(document.getElementById('e-hour').value);
+      const sm = parseInt(document.getElementById('s-min').value),
+            em = parseInt(document.getElementById('e-min').value);
+      const sub = document.getElementById('t-sub').value;
+      if (!sub) { alert("과목을 입력해주세요!"); return; }
+
+      const color = sub.includes("수학") ? 'var(--color-math)' :
+                    (sub.includes("영어") ? 'var(--color-eng)' : 'var(--color-etc)');
+
+      for (let t = sh * 60 + sm; t < eh * 60 + em; t += 10) {
+        const target = document.getElementById(`t-${String(Math.floor(t / 60)).padStart(2, '0')}-${t % 60}`);
+        if (target) target.style.background = color;
+      }
+      saveTracker();
+    }
+
+    function saveTracker(){
+      const data = {};
+      let activeBlocks = 0;
+      document.querySelectorAll('.tracker-table td').forEach(td => {
+        if(td.style.background && td.style.background !== 'rgba(0, 0, 0, 0)') {
+          data[td.id] = td.style.background;
+          activeBlocks++;
+        }
+      });
+      localStorage.setItem('tracker_data', JSON.stringify(data));
+
+      const totalMinutes = activeBlocks * 10;
+      const h = Math.floor(totalMinutes / 60), m = totalMinutes % 60;
+      localStorage.setItem('today_study_time', `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`);
+      syncAchievePreview();
+    }
+
+    /* 캘린더 */
+    /* 캘린더 (목표 DB: gi_db_v2 연동 버전) */
+// 1. 현재 보고 있는 연도와 달을 기억할 변수를 만들어요.
+// localStorage에서 SCHOOL_DB 불러오기
+const rawData = localStorage.getItem('SCHOOL_DB');
+let SCHOOL_DB = {};
+
+if (rawData) {
+  try {
+    SCHOOL_DB = JSON.parse(rawData);
+  } catch (e) {
+    console.error('DB 파싱 오류:', e);
+  }
+}
+
+let viewYear = new Date().getFullYear();
+let viewMonth = new Date().getMonth();
+
+function buildCalendar() {
+  document.getElementById('monthYear').innerText = `${viewYear}년 ${viewMonth + 1}월`;
+  
+  const grid = document.getElementById('calendarDays');
+  grid.innerHTML = '';
+
+  ['일','월','화','수','목','금','토'].forEach(d=> {
+    const el=document.createElement('div');
+    el.innerText=d; el.style.fontWeight='bold'; el.style.color='#aaa';
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const lastDate = new Date(viewYear, viewMonth + 1, 0).getDate();
+  
+  for(let i=0; i<firstDay; i++) grid.appendChild(document.createElement('div'));
+
+  // ✅ exam 날짜와 학교 이름을 함께 저장
+  const examDateMap = {}; // { "2026-01-10": ["서강대", "연세대"], ... }
+  
+  for (let schoolName in SCHOOL_DB) {
+    const school = SCHOOL_DB[schoolName];
+    
+    if (school.exam) {
+      if (!examDateMap[school.exam]) {
+        examDateMap[school.exam] = [];
+      }
+      examDateMap[school.exam].push(schoolName);
+    }
+    
+    if (school.campuses) {
+      for (let campusName in school.campuses) {
+        if (school.campuses[campusName].exam) {
+          const examDate = school.campuses[campusName].exam;
+          if (!examDateMap[examDate]) {
+            examDateMap[examDate] = [];
+          }
+          examDateMap[examDate].push(`${schoolName} (${campusName})`);
+        }
+      }
+    }
+  }
+  
+  console.log('수집된 시험 정보:', examDateMap);
+
+  for(let i=1; i<=lastDate; i++){
+    const d=document.createElement('div');
+    d.style.position = 'relative';
+    d.innerText=i;
+    
+    const realToday = new Date();
+    if(i === realToday.getDate() && viewMonth === realToday.getMonth() && viewYear === realToday.getFullYear()) {
+        d.className='today';
+    }
+
+    const dateStr = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+    
+    // ✅ 이 날짜에 시험이 있으면
+    if (examDateMap[dateStr]) {
+  const dot = document.createElement('div');
+  dot.className = 'exam-dot';
+  
+  // ✅ data 속성에 학교 이름 저장
+  const schools = examDateMap[dateStr].join(', ');
+  dot.setAttribute('data-schools', `${schools} 시험`);
+  
+  d.appendChild(dot);
+}
+    grid.appendChild(d);
+  }
+}
+
+// 4. [새 벽돌] 달을 이동시키는 함수예요!
+function moveMonth(delta) {
+  viewMonth += delta;
+  if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+  if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+  buildCalendar(); // 바뀐 달로 다시 그리기!
+}
+
+
+
+    function syncAchievePreview(){
+      const time = localStorage.getItem('today_study_time') || "00:00:00";
+      document.getElementById('achieve-time').innerText = time;
+      document.getElementById('achieve-percent').innerText = savedProgress + "%";
+      document.getElementById('achieve-bar').style.width = savedProgress + "%";
+    }
+
+    /* ==========================
+       ✅✅ 시험 DB 미리보기 "완전판" (연결중 고치기 + 시험DB와 통일)
+       ========================== */
+
+    function isFiniteNumber(v){ return Number.isFinite(Number(v)); }
+    function safeParse(raw){ try { return JSON.parse(raw); } catch(e){ return null; } }
+
+    // exam.html쪽 철학: 배열/객체 어떤 형태든 rows를 뽑아내기
+    function extractRows(data){
+      if(Array.isArray(data)) return data;
+      if(data && typeof data === "object"){
+        const keys = ["db","records","rows","data"];
+        for(const k of keys) if(Array.isArray(data[k])) return data[k];
+        for(const k of Object.keys(data)) if(Array.isArray(data[k])) return data[k];
+      }
+      return [];
+    }
+
+    // 점수 필드가 뭐로 들어와도 최대한 score로 잡기
+    function readScoreFromObject(obj){
+      if(!obj || typeof obj !== "object") return null;
+
+      const candidates = ["score","점수","totalScore","total","currentScore","rawScore","points"];
+      let best = null, bestScore = -Infinity;
+
+      for(const key of Object.keys(obj)){
+        const v = obj[key];
+        if(!isFiniteNumber(v)) continue;
+        const lk = key.toLowerCase();
+        if(lk.includes("percentile") || lk.includes("백분위")) continue;
+
+        let s = 0;
+        if(lk.includes("score") || lk.includes("점수")) s += 10;
+        if(lk.includes("total") || lk.includes("총점") || lk.includes("raw")) s += 6;
+        if(candidates.some(c => c.toLowerCase() === lk)) s += 2;
+
+        const n = Number(v);
+        if(n >= 0 && n <= 100) s += 1;
+
+        if(s > bestScore){
+          bestScore = s;
+          best = n;
+        }
+      }
+      return (bestScore > -Infinity) ? best : null;
+    }
+
+    // mock 최신값: date/createdAt/ts 있으면 그걸로, 없으면 마지막 행
+    function readTime(row){
+      if(!row || typeof row !== "object") return null;
+      const dateKeys = ["date","createdAt","ts","timestamp","time","datetime"];
+      for(const k of dateKeys){
+        const v = row[k];
+        if(v == null) continue;
+        if(isFiniteNumber(v)) return Number(v);
+        if(typeof v === "string"){
+          const t = new Date(v).getTime();
+          if(Number.isFinite(t)) return t;
+        }
+      }
+      return null;
+    }
+
+    function pickLatestRow(rows){
+      if(!rows.length) return null;
+      let best = rows[rows.length - 1];
+      let bestT = -Infinity;
+      for(const r of rows){
+        const t = readTime(r);
+        if(t !== null && t >= bestT){
+          bestT = t;
+          best = r;
+        }
+      }
+      return best;
+    }
+
+    // ✅ 여기서부터 핵심: "무조건 UI를 갱신"함 (연결중 고정 방지)
+    function setExamPreview(kind, current, goal){
+      const infoEl = document.getElementById(`main-${kind}-score-info`);
+      const barEl  = document.getElementById(`main-${kind}-bar`);
+      if(!infoEl || !barEl) return;
+
+      const safeGoal = isFiniteNumber(goal) ? Number(goal) : 100;
+
+      if(!isFiniteNumber(current)){
+        infoEl.innerText = `현재:- / 목표:${safeGoal}`;
+        barEl.style.width = `0%`;
+        return;
+      }
+
+      infoEl.innerText = `현재:${current} / 목표:${safeGoal}`;
+      barEl.style.width = Math.min((Number(current) / safeGoal) * 100, 100) + '%';
+    }
+
+    function syncMainExamData(){
+      const mockGoal = Number(localStorage.getItem(`exam_goal_v1:${currentMajor}:mock`)) || 100;
+      const pastGoal = Number(localStorage.getItem(`exam_goal_v1:${currentMajor}:past`)) || 100;
+
+      // ✅ 기본값으로 먼저 UI를 "연결중"에서 벗겨놓음
+      setExamPreview("mock", null, mockGoal);
+      setExamPreview("past", null, pastGoal);
+
+      // --- mock (최신 1개) ---
+      {
+        const raw = localStorage.getItem("mockDB_records_v1");
+        const parsed = safeParse(raw);
+        const rows = extractRows(parsed);
+
+        const subjectRows = rows.filter(r =>
+          r && r.subject && String(r.subject).trim() === String(currentMajor).trim()
+        );
+
+        const latest = pickLatestRow(subjectRows);
+        const current = latest ? readScoreFromObject(latest) : null;
+
+        setExamPreview("mock", current, mockGoal);
+      }
+
+      // --- past (평균) ---
+      // --- past (최신 연도 평균: 시험DB와 동일하게) ---
+{
+  const raw = localStorage.getItem("gi_db_v2");
+  const parsed = safeParse(raw);
+  const rows = extractRows(parsed);
+
+  const subjectRows = rows.filter(r =>
+    r && r.subject && String(r.subject).trim() === String(currentMajor).trim()
+  );
+
+  // ✅ 연도 뽑기: row.year 우선, 없으면 date류로 시도
+  function getYearFromRow(row){
+    if(!row || typeof row !== "object") return null;
+    if(isFiniteNumber(row.year)) return Number(row.year);
+
+    const dateKeys = ["year","date","createdAt","ts","timestamp","time","datetime"];
+    for(const k of dateKeys){
+      const v = row[k];
+      if(v == null) continue;
+
+      if(isFiniteNumber(v)) {
+        // year 자체면 그대로, timestamp면 Date로
+        const n = Number(v);
+        if(n >= 1900 && n <= 2100) return n;
+        const y = new Date(n).getFullYear();
+        if(Number.isFinite(y)) return y;
+      }
+
+      if(typeof v === "string"){
+        const m = v.match(/^(\d{4})/);
+        if(m) return Number(m[1]);
+        const y = new Date(v).getFullYear();
+        if(Number.isFinite(y)) return y;
+      }
+    }
+    return null;
+  }
+
+  // ✅ 연도별로 점수 담기
+  const buckets = new Map(); // year -> [scores]
+  for(const r of subjectRows){
+    const sc = readScoreFromObject(r);
+    if(!isFiniteNumber(sc)) continue;
+
+    const y = getYearFromRow(r) ?? "ALL";
+    if(!buckets.has(y)) buckets.set(y, []);
+    buckets.get(y).push(Number(sc));
+  }
+
+  let current = null;
+
+  if(buckets.size){
+    // 숫자 year 중 가장 최신 선택
+    const years = [...buckets.keys()].filter(k => isFiniteNumber(k)).map(Number);
+    const chosen = years.length ? Math.max(...years) : "ALL";
+    const arr = buckets.get(chosen) || buckets.get("ALL") || [];
+
+    if(arr.length){
+      current = Math.round((arr.reduce((a,b)=>a+b,0)/arr.length) * 10) / 10;
+    }
+  }
+
+  setExamPreview("past", current, pastGoal);
+}
+    }
+
+    /* 체크DB 요약 */
+    function syncCheckData() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const prefix = `checkDB_v2:day:${todayStr}:${currentMajor}`;
+      let errs = [], pts = [];
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith(prefix)) {
+          const rows = JSON.parse(localStorage.getItem(key) || "[]");
+          rows.forEach(r => { if(r.error) errs.push(r.error); if(r.part) pts.push(r.part); });
+        }
+      }
+
+      const updateUI = (displayId, list, canvasId) => {
+        if (list.length > 0) {
+          const counts = {};
+          list.forEach(item => counts[item] = (counts[item] || 0) + 1);
+          document.getElementById(displayId).innerText =
+            Object.entries(counts).sort((a,b) => b[1]-a[1])[0][0];
+
+          const ctx = document.getElementById(canvasId).getContext('2d');
+          if (window[canvasId + 'Chart']) window[canvasId + 'Chart'].destroy();
+          window[canvasId + 'Chart'] = new Chart(ctx, {
+            type: 'doughnut',
+            data: { datasets: [{ data: Object.values(counts), backgroundColor: ["#ff8fa3", "#ffd6a5", "#cdb4db", "#a2d2ff", "#fdfd96"], borderWidth: 0 }] },
+            options: { cutout: '70%', plugins: { legend: { display: false } } }
+          });
+        } else {
+          document.getElementById(displayId).innerText = "기록 없음";
+        }
+      };
+
+      updateUI('main-top-error', errs, 'main-error-chart');
+      updateUI('main-top-part', pts, 'main-part-chart');
+    }
+
+    /* ==========================
+       ✅ 목표DB(기출 기반 유리한 학교) (원본 유지)
+       ========================== */
+
+    function loadGiDB(){
+      try{
+        const raw = localStorage.getItem("gi_db_v2");
+        if(!raw) return { db: [] };
+        const parsed = JSON.parse(raw);
+        const db = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.db) ? parsed.db : []);
+        return { db };
+      }catch(e){
+        return { db: [] };
+      }
+    }
+
+    function normSchool(name){
+      return String(name || "")
+        .trim()
+        .replace(/\s+/g, "")
+        .replace(/대학교$/,"대")
+        .replace("대학교","대");
+    }
+
+    function mean(arr){
+      if(!arr || arr.length === 0) return null;
+      return arr.reduce((a,b)=>a+b,0) / arr.length;
+    }
+
+    function stddev(arr){
+      if(!arr || arr.length < 2) return 0;
+      const m = mean(arr);
+      const v = arr.reduce((acc,x)=>acc + (x-m)*(x-m), 0) / (arr.length - 1);
+      return Math.sqrt(v);
+    }
+
+    function getRecentYears(db, subject, n=3){
+      const years = Array.from(new Set(
+        db
+          .filter(r => r.subject === subject && Number.isFinite(Number(r.year)))
+          .map(r => Number(r.year))
+      )).sort((a,b)=>b-a);
+
+      return years.slice(0, n);
+    }
+
+    function buildStats3y({ subject=currentMajor, recentN=3 }={}){
+      const { db } = loadGiDB();
+      const years = getRecentYears(db, subject, recentN);
+
+      if(!years.length) return { years:[], overallAvg:null, bySchool:new Map() };
+
+      const rows = db.filter(r =>
+        r.subject === subject &&
+        years.includes(Number(r.year)) &&
+        r.school &&
+        Number.isFinite(Number(r.score))
+      );
+
+      const allScores = rows.map(r => Number(r.score));
+      const overallAvg = mean(allScores);
+
+      const bySchoolScores = new Map();
+      for(const r of rows){
+        const s = normSchool(r.school);
+        const score = Number(r.score);
+        if(!bySchoolScores.has(s)) bySchoolScores.set(s, []);
+        bySchoolScores.get(s).push(score);
+      }
+
+      const bySchool = new Map();
+      for(const [school, scores] of bySchoolScores.entries()){
+        bySchool.set(school, {
+          scores,
+          avg: mean(scores),
+          std: stddev(scores),
+          n: scores.length
+        });
+      }
+
+      return { years, overallAvg, bySchool };
+    }
+
+    function pickBestSchoolByZ({ subject=currentMajor, recentN=3 }={}){
+      const { years, overallAvg, bySchool } = buildStats3y({ subject, recentN });
+      if(!Number.isFinite(overallAvg)) return null;
+
+      let best = null;
+
+      for(const [school, st] of bySchool.entries()){
+        const schoolAvg = st.avg;
+        if(!Number.isFinite(schoolAvg)) continue;
+
+        const std = Number.isFinite(st.std) ? st.std : 0;
+        const diff = overallAvg - schoolAvg;
+
+        const denom = (std > 0) ? std : 0.000001;
+        const z = diff / denom;
+
+        const row = { school, overallAvg, schoolAvg, std, diff, z, years, n: st.n };
+
+        if(
+          !best ||
+          row.z > best.z ||
+          (row.z === best.z && row.diff > best.diff) ||
+          (row.z === best.z && row.diff === best.diff && row.std < best.std)
+        ){
+          best = row;
+        }
+      }
+
+      return best;
+    }
+
+    function renderMainBest() {
+  // ✅ gi_db_v2에서 "현재 과목(currentMajor)" + "최근 3개년" 기준으로
+  // ✅ 학교별 평균이 가장 높은 곳을 "유리한 대학"으로 선정
+
+  const $name = document.getElementById("mainBestSchoolName");
+  const $avg  = document.getElementById("mainSchoolAvg");
+  const $diff = document.getElementById("mainAvgDiff");
+  const $std  = document.getElementById("mainSchoolStd");
+  const setText = (el, txt) => { if(el) el.textContent = txt; };
+
+  // 1) 원본 로드 (배열 / {db:[...]} 둘 다 대응)
+  let raw = localStorage.getItem("gi_db_v2");
+  if(!raw){
+    setText($name, "데이터 없음"); setText($avg, "-"); setText($std, "-"); setText($diff, "-");
+    return;
+  }
+
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch(e){
+    setText($name, "데이터 오류"); setText($avg, "-"); setText($std, "-"); setText($diff, "-");
+    return;
+  }
+
+  const db = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.db) ? parsed.db : []);
+  if(!db.length){
+    setText($name, "데이터 없음"); setText($avg, "-"); setText($std, "-"); setText($diff, "-");
+    return;
+  }
+
+  // 2) 과목 필터 + 점수/연도 유효 데이터만
+  const subjectRows = db.filter(r =>
+    r && String(r.subject || "").trim() === String(currentMajor).trim() &&
+    r.school && String(r.school).trim() !== "" &&
+    Number.isFinite(Number(r.score)) &&
+    Number.isFinite(Number(r.year))
+  );
+
+  if(!subjectRows.length){
+    setText($name, "데이터 없음"); setText($avg, "-"); setText($std, "-"); setText($diff, "-");
+    return;
+  }
+
+  // 3) 최근 3개년 뽑기
+  const years = Array.from(new Set(subjectRows.map(r => Number(r.year)))).sort((a,b)=>b-a).slice(0,3);
+  const rows3y = subjectRows.filter(r => years.includes(Number(r.year)));
+
+  if(!rows3y.length){
+    setText($name, "데이터 없음"); setText($avg, "-"); setText($std, "-"); setText($diff, "-");
+    return;
+  }
+
+  // 4) 전체 평균(비교용)
+  const allScores = rows3y.map(r => Number(r.score));
+  const overallAvg = allScores.reduce((a,b)=>a+b,0) / allScores.length;
+
+  // 5) 학교별로 묶기
+  const bySchool = new Map();
+  for(const r of rows3y){
+    const school = String(r.school).trim();
+    const score = Number(r.score);
+    if(!bySchool.has(school)) bySchool.set(school, []);
+    bySchool.get(school).push(score);
+  }
+
+  // 표준편차(표본) 계산
+  const mean = arr => arr.reduce((a,b)=>a+b,0) / arr.length;
+  const stddevSample = arr => {
+    if(arr.length < 2) return 0;
+    const m = mean(arr);
+    const v = arr.reduce((acc,x)=>acc + (x-m)*(x-m), 0) / (arr.length - 1);
+    return Math.sqrt(v);
+  };
+
+  // 6) ✅ "평균 점수 높은 학교" 고르기
+  let best = null;
+
+  for(const [school, scores] of bySchool.entries()){
+    const avg = mean(scores);
+    const std = stddevSample(scores);
+    const n = scores.length;
+
+    const row = { school, avg, std, n };
+
+    if(
+      !best ||
+      row.avg > best.avg ||
+      (row.avg === best.avg && row.std < best.std) ||
+      (row.avg === best.avg && row.std === best.std && row.n > best.n)
+    ){
+      best = row;
+    }
+  }
+
+  if(!best){
+    setText($name, "데이터 없음"); setText($avg, "-"); setText($std, "-"); setText($diff, "-");
+    return;
+  }
+
+  // 7) UI 반영
+  const diff = best.avg - overallAvg;
+  const sign = diff >= 0 ? "+" : "";
+
+  setText($name, best.school);
+  setText($avg,  best.avg.toFixed(1) + "점");
+  setText($std,  "±" + best.std.toFixed(1));
+  setText($diff, `차이 ${sign}${diff.toFixed(1)}`);
+}
+
+document.querySelectorAll('.theme-selector .theme-dot').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const url = btn.dataset.go;
+    if (url) window.location.href = url;
+  });
+});
+
+    /* 초기 로드 */
+    window.addEventListener('DOMContentLoaded', () => {
+      buildCalendar();
+      initTrackerUI();
+      syncAchievePreview();
+      syncMainExamData(); // ✅ 반드시 호출
+      syncCheckData();
+      renderMainBest();
+    });
+  </script>
+  <script>
+        // 1. 몇 번 눌렀는지 기억할 '비밀 장부'
+        let clickCount = 0;
+        
+        // 2. 5번 클릭하면 금고 열기
+        function handleVersionClick() {
+            clickCount++;
+            if (clickCount === 5) {
+                document.getElementById('secret-modal').style.display = 'block';
+                clickCount = 0;
+            }
+        }
+
+        // 3. 닫기 버튼용
+        function closeSecretModal() {
+            document.getElementById('secret-modal').style.display = 'none';
+        }
+
+        // 4. (미리 만들어두는) 코드 확인 함수
+        function checkMySecretCode() {
+    const userInput = document.getElementById('secret-input').value;
+
+    // 사장님! 여기에 '기존 웹버전 비밀번호'를 그대로 적어주세요.
+    const masterCode = "g8s2k7wq"; 
+
+    if (userInput === masterCode) {
+        // [성공] "웹에서 오신 VIP님 환영합니다!" 라는 도장을 찍어줍니다.
+        localStorage.setItem("isFullVersion", "true"); 
+        alert("🌸 인증되었습니다! 웹버전의 혜택을 앱에서도 그대로 누리세요.");
+        location.reload(); 
+    } else {
+        alert("코드가 틀렸어요. 웹버전 비밀번호를 다시 확인해 주세요! 🌸");
+    }
+}
+    </script>
+  <footer style="text-align: center; font-size: 10px; color: #aaa; margin-top: 20px;">
+    <p>Copyright 2026. 서연. All rights reserved.</p>
+    <p id="version-trigger" onclick="handleVersionClick()" style="cursor: default;">image from Pixabey(by Aisvarya Kalyansundaram)</p>
+  </footer>
+  <div id="secret-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 2px solid #ffc0cb; padding: 20px; z-index: 1000; border-radius: 15px; text-align: center;">
+    <p style="color: #ff69b4; font-weight: bold;">🌸 VIP 인증 코드 입력</p>
+    <input type="text" id="secret-input" placeholder="코드를 입력하세요" style="border: 1px solid #ffc0cb; border-radius: 5px; padding: 5px;">
+    <button onclick="checkMySecretCode()" style="background: #ffc0cb; border: none; border-radius: 5px; padding: 5px 10px; color: white;">확인</button>
+    <button onclick="closeSecretModal()" style="background: #eee; border: none; border-radius: 5px; padding: 5px 10px; margin-top: 10px;">닫기</button>
+</div>
+<script src="trial.js"></script>
+<script>
+    // 💡 여기서 'let'을 또 쓰지 마세요! 
+    // 이미 trial.js에서 만든 'isFullVersion'을 그냥 가져다 쓰면 됩니다.
+    if (isFullVersion) {
+        console.log("사장님, VIP 인증 확인됐습니다! 🌸");
+    }
+</script>
+<script>
+  // 1. 모든 테마 버튼을 다 찾아와!
+  document.querySelectorAll('.theme-dot').forEach(button => {
+    button.addEventListener('click', () => {
+      // 2. 버튼에 적힌 data-theme 값(pink, blue 등)을 가져와서
+      const selectedColor = button.getAttribute('data-theme');
+      
+      // 3. trial.js에 있는 함수를 실행해서 저장하고 이동!
+      selectTheme(selectedColor); 
+      
+      // 4. (선택사항) 잘 작동하는지 콘솔로 확인
+      console.log(selectedColor + " 테마로 변경 시도!");
+    });
+  });
+</script>
+</body>
+</html>

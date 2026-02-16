@@ -1,0 +1,124 @@
+    :root{
+      --bg-color:#fbfbfa; --block-bg:#ffffff; --point-pink:#fff0f3;
+      --text-color:#37352f; --main-pink:#ff8fa3;
+      --color-math: #a2d2ff; --color-eng: #ffccd5; --color-etc: #fdfd96;
+      --accent:#ff8fa3; --accent-strong: rgba(255,143,163,.28); --text-strong:#b23a48;
+    }
+    *{ box-sizing:border-box; }
+    body{ background-color: var(--bg-color); color: var(--text-color); font-family: 'Inter', sans-serif; margin:0; padding:0; }
+    .header-banner{ width:100%; height:180px; background-image:url('pink-bg.jpg'); background-size:cover; background-position:center; }
+    .container{ max-width:1100px; margin:-40px auto 40px; padding:0 20px; }
+    .title-section{ background: var(--block-bg); padding:20px; border-radius:12px; margin-bottom:20px; max-height: 100px !important; display:flex; align-items:center; gap:15px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+    .main-layout{ display:grid; grid-template-columns: 280px 1fr 280px; gap:20px; margin-bottom:20px; width:100%; }
+    .bottom-layout{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+    .block{ background: var(--block-bg); border-radius:12px; padding:18px; min-height:220px; box-shadow:0 1px 3px rgba(0,0,0,0.05); border:1px solid #edece9; display:flex; flex-direction:column; position: relative; }
+    .pink-block{ background-color: var(--point-pink); }
+    .move-btn { font-size: 11px; background: var(--main-pink); color: white; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-weight: bold; border:none; cursor:pointer; }
+    .timer-header {display: flex;justify-content: space-between;align-items: center;width: 100%;margin-bottom: 10px;}
+    .time-display {font-size: 42px !important; /* 숫자를 더 크게! */font-weight: bold !important;color: var(--main-pink) !important;margin: 20px 0 !important;text-align: center !important; display: flex !important; justify-content: center !important; align-items: center !important; flex: 1 !important; /* 고무줄(flex) 기능을 끄고 전광판처럼 당당하게! */line-height: 1.2;}
+    .mode-btn {font-size: 10px;padding: 2px 8px;border-radius: 8px;border: 1px solid var(--main-pink);background: white; color: var(--main-pink); cursor: pointer;font-weight: bold;}
+    .timer-btns{ text-align:center; padding-bottom: 5px; }
+    .timer-btns button{ background: var(--main-pink); color:white; border:none; padding:8px 18px; border-radius:20px; cursor:pointer; font-weight:bold; }
+    .calendar-header { 
+  display: flex;                /* ◀ 2026년 2월 ▶ 요렇게 나란히! */
+  justify-content: center;      /* 가운데로 모으기 */
+  align-items: center;
+  font-weight: bold; 
+  color: var(--main-pink); 
+  margin-bottom: 12px; 
+  text-align: center; 
+  font-size: 14px; 
+}
+
+    .calendar-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap:4px; font-size:11px; text-align:center; }
+    .calendar-grid div { padding: 4px 0; color: #555; }
+    .today{ background-color: var(--main-pink); color:white !important; border-radius:50%; font-weight:bold; }
+    .tracker-table{ border-collapse:collapse; width:100%; table-layout: fixed; }
+    .tracker-table th{ font-size:9px; color: #ccc; width:22px; text-align:center; padding: 2px 0; font-weight: normal; }
+    .tracker-table td{ border:1px solid #f3f3f3; height:18px; cursor:pointer; }
+    select, input[type="text"] { border: 1px solid #eee; border-radius: 4px; padding: 5px; font-size: 11px; outline: none; }
+    .pill-toggle { background: #eee; padding: 4px; border-radius: 999px; display: inline-flex; }
+    .pill-toggle .tab {
+      border: none; background: transparent; padding: 4px 12px;
+      border-radius: 999px; font-weight: 900; cursor: pointer; color: #888;
+    }
+    .pill-toggle .tab.active { background: #ff8fa3; color: white; }
+    .theme-selector {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  padding-left: 6px;
+}
+
+.theme-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.theme-dot:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.08);
+}
+
+/* 색상 미리보기 */
+.theme-dot.pink {
+  background: #ff8fa3;
+}
+.theme-dot.purple {
+  background: #b9a7e3;
+}
+.theme-dot.blue {
+  background: #8fbce6;
+}
+.theme-dot.green {
+  background: #9db7a0;
+}
+
+/* 캘린더 날짜 칸이 점을 담을 수 있게 준비해요 */
+.calendar-grid div {
+    position: relative; /* 점이 이 칸 안에서 움직이게 기준이 돼요 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 시험 날짜 아래에 찍힐 작은 점 */
+.exam-dot {
+    width: 4px;
+    height: 4px;
+    background-color: #ff8fa3; /* 타이머랑 맞춘 핑크색이나 보라색으로! */
+    border-radius: 50%;
+    margin-top: 2px;
+    position: relative;
+    cursor: pointer;
+}
+
+.exam-dot::after {
+  content: attr(data-schools);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
+  color: var(--main-pink);
+  padding: 5px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  margin-bottom: 5px;
+  z-index: 1000;
+}
+
+.exam-dot:hover::after {
+  opacity: 1;
+}
+
+
+    @media (max-width: 1000px){ .main-layout{ grid-template-columns: 1fr; } }

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오딘 플래너 인스타 포스터</title>
+  <!-- 이미지 저장 기능을 위한 마법 도구 (라이브러리) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css");
+
+    :root {
+      --main-pink: #FF85A2;
+      --soft-pink: #FFF0F5;
+      --deep-pink: #FF5E89;
+      --text-gray: #4A4A4A;
+      --quote-color: #FFB7C5;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Pretendard", sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    /* 포스터 본체: 인스타에 올렸을 때 가장 예쁜 영역 */
+    #capture-area {
+      width: 100%;
+      max-width: 600px;
+      background: white;
+      border-radius: 0px; /* 인스타 업로드용은 깔끔하게 */
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 상단 헤더 */
+    .header {
+      padding: 50px 30px 20px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(180deg, #FFC0D3 0%, #FFFFFF 100%);
+    }
+
+    .logo-main {
+      width: 110px;
+      margin-bottom: 15px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 5px 15px;
+      background: var(--main-pink);
+      color: white;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: 1.2px;
+    }
+
+    .header h1 {
+      font-size: 38px;
+      font-weight: 800;
+      color: var(--deep-pink);
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    /* 메인 이미지 (pink.jpg) */
+    .main-visual {
+      padding: 20px 30px;
+      background: white;
+    }
+
+    .image-frame {
+      width: 100%;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(255, 133, 162, 0.15);
+      border: 6px solid #333;
+      background: #000;
+    }
+
+    .dashboard-img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* 특징 */
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 20px 30px;
+    }
+
+    .feature-card {
+      background: var(--soft-pink);
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+    }
+
+    .feature-card span { font-size: 30px; display: block; margin-bottom: 10px; }
+    .feature-card h3 { font-size: 16px; color: var(--deep-pink); margin: 0 0 5px 0; }
+    .feature-card p { font-size: 13px; color: var(--text-gray); margin: 0; line-height: 1.4; }
+
+    /* CEO 코멘트: 인용구 스타일 강화 */
+    .ceo-review {
+      margin: 10px 30px 30px 30px;
+      padding: 30px 20px 25px 20px;
+      background: #FFF9FA;
+      border-radius: 15px;
+      text-align: center;
+      position: relative;
+      border: 1px solid #FFE4EB;
+    }
+
+    /* 큰 따옴표 아이콘 장식 */
+    .ceo-review::before {
+      content: '“';
+      position: absolute;
+      top: -5px;
+      left: 20px;
+      font-size: 60px;
+      color: var(--quote-color);
+      font-family: serif;
+      opacity: 0.5;
+    }
+
+    .ceo-review::after {
+      content: '”';
+      position: absolute;
+      bottom: -35px;
+      right: 20px;
+      font-size: 60px;
+      color: var(--quote-color);
+      font-family: serif;
+      opacity: 0.5;
+    }
+
+    .ceo-review blockquote {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-gray);
+      margin: 0;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+      font-style: italic;
+    }
+
+    .ceo-review .author {
+      display: block;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #999;
+      font-weight: 500;
+      font-style: normal;
+    }
+
+    /* 하단 브랜드 */
+    .footer {
+      padding: 50px 30px 20px 30px;
+      background: var(--deep-pink);
+      text-align: center;
+      color: white;
+    }
+
+    .brand-name {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .copyright { font-size: 11px; opacity: 0.6; margin-top: 30px; }
+
+    /* 이미지 저장 버튼 (화면에만 보임) */
+    #save-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      padding: 15px 25px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      z-index: 100;
+      transition: transform 0.2s;
+    }
+
+    #save-btn:hover { transform: scale(1.05); background: var(--deep-pink); }
+  </style>
+</head>
+<body>
+
+  <!-- 이 영역이 이미지로 저장됩니다 -->
+  <div id="capture-area">
+    <div class="header">
+      <img src="Odin_logo.png" alt="Odin Planner Logo" class="logo-main">
+      <div class="tag">UNLOCK YOUR VISION</div>
+      <h1>성공을 설계하는<br>가장 치밀한 대시보드</h1>
+    </div>
+
+    <div class="main-visual">
+      <div class="image-frame">
+        <img src="pink.jpg" alt="오딘 플래너 대시보드" class="dashboard-img">
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature-card">
+        <span>📊</span>
+        <h3>데이터 합격 전략</h3>
+        <p>나에게 가장 유리한<br>대학을 제안합니다.</p>
+      </div>
+      <div class="feature-card">
+        <span>📈</span>
+        <h3>오답 패턴 분석</h3>
+        <p>약점을 강점으로 바꾸는<br>시각화 그래프 제공.</p>
+      </div>
+    </div>
+
+    <!-- 인용 문구 영역 수정 -->
+    <div class="ceo-review">
+      <blockquote>"이건 비즈니스로 봐도 손색없는 완벽한 로직이다"</blockquote>
+      <span class="author">— 어느 중소기업 CEO의 발언</span>
+    </div>
+
+    <div class="footer">
+      <span class="brand-name">Odin Planner</span>
+      <p style="font-size: 14px; opacity: 0.9; margin: 0;">당신의 합격 Route를 시작하세요</p>
+      <div class="copyright">Copyright by 서연. All rights reserved.</div>
+    </div>
+  </div>
+
+  <!-- 저장 버튼 -->
+  <button id="save-btn" onclick="saveAsImage()">📸 인스타용 이미지 저장하기</button>
+
+  <script>
+    function saveAsImage() {
+      const btn = document.getElementById('save-btn');
+      btn.style.display = 'none'; // 저장할 때는 버튼 안 보이게
+
+      html2canvas(document.querySelector("#capture-area"), {
+        useCORS: true, // 이미지 로딩 허용
+        scale: 2       // 고화질 저장
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'Odin_Planner_Instagram.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        btn.style.display = 'block'; // 저장이 끝나면 다시 버튼 보여주기
+      });
+    }
+  </script>
+
+</body>
+</html>

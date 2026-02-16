@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🏆 성취 DB</title>
+<link id="themeLink" rel="stylesheet" href="">
+<script src="trial.js"></script>
+<script>
+        // 1. trial.js에서 저장된 '색상'을 가져오고
+        const theme = getSavedTheme()|| "pink";
+        // 2. 이 페이지의 '역할(check)'을 조합해서 경로 완성!
+        const themePath = `${theme}/achievement.css`; 
+        document.getElementById("themeLink").href = themePath;
+    </script>
+
+</head>
+
+<body>
+<div class="container">
+
+  <div class="back" onclick="location.href='index.html'">← 메인 대시보드로 돌아가기</div>
+
+  <h1>🏆 성취 DB</h1>
+
+  <div class="topbar">
+    <button class="btn" id="addTopBtn">+ 새로 만들기</button>
+  </div>
+
+  <div class="summary">
+    <div class="card">
+      <div class="label">⏱️ 오늘 총 공부 시간</div>
+      <div class="value" id="studyTime">00:00:00</div>
+      <div class="small">트래커와 실시간 연동 중</div>
+    </div>
+    <div class="card">
+      <div class="label">🎯 목표 달성률</div>
+      <div class="value" id="overallProgress">0%</div>
+      <div class="small">최상위 항목 평균</div>
+    </div>
+  </div>
+
+
+  <div class ="section">
+    <h2 class="section-title">오늘 할 일</h2>
+    <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60px">✅</th>
+          <th style="width:42%">할 일</th>
+          <th style="width:18%">상태</th>
+          <th style="width:18%">과목</th>
+          <th style="width:18%">진행 상태</th>
+        </tr>
+      </thead>
+      <tbody id="todoBody"></tbody>
+    </table>
+  </div>
+ </div>
+
+ <!-- ✅ Habit Tracker Section -->
+<div class="section-gap"></div>
+
+<div class="table-card habit-card">
+  <div class="habit-head">
+    <div class="habit-title">✅ 해빗 트래커</div>
+    <button class="btn" id="habitAddBtn" type="button">+ 해빗 추가</button>
+  </div>
+
+  <table class="habit-table">
+    <thead>
+      <tr>
+        <th style="width:180px;">해빗</th>
+        <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
+        <th style="width:80px;">관리</th>
+      </tr>
+    </thead>
+    <tbody id="habitBody"></tbody>
+  </table>
+
+  <div class="habit-hint">※ 칸을 누르면 체크가 저장돼. (브라우저 저장/localStorage)</div>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = "ACH_DB_V2_JSON";
+const SUBJECTS = ["기타","수학","영어"];
+
+let state = {
+  items: [],
+  nextId: 1
+};
+
+const tbody = document.getElementById("todoBody");
+const overallEl = document.getElementById("overallProgress");
+const studyTimeEl = document.getElementById("studyTime");
+
+/* ✅ 초기화 함수 */
+function hardReset(){
+  state = { items: [], nextId: 1 };
+  localStorage.setItem(KEY, JSON.stringify(state));
+  overallEl.textContent = "0%";
+  const latestTime = localStorage.getItem('today_study_time') || "00:00:00";
+  studyTimeEl.textContent = latestTime;
+  tbody.innerHTML = "";
+}
+
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
+
+/* ✅ 저장된 데이터를 불러오는 함수 */
+function load(){
+  const saved = localStorage.getItem(KEY);
+  if(saved) {
+    state = JSON.parse(saved);
+  } else {
+    state = { items: [], nextId: 1 };
+  }
+}
+
+function newId(){ return state.nextId++; }
+
+function addTopItem(text="새 할 일을 입력하세요", subject="기타", checked=false){
+  const id = newId();
+  const order = getChildren(null).length;
+  state.items.push({ id, parentId:null, order, text, subject, checked });
+  return id;
+}
+
+function addChildItem(parentId, text="하위 할 일 입력", subject="기타", checked=false){
+  const id = newId();
+  const order = getChildren(parentId).length;
+  state.items.push({ id, parentId, order, text, subject, checked });
+  return id;
+}
+
+function getItem(id){ return state.items.find(x=>x.id===id); }
+
+function getChildren(parentId){
+  return state.items.filter(x=>x.parentId===parentId).sort((a,b)=>a.order-b.order);
+}
+
+function getDepth(item){
+  let d=0, cur=item;
+  while(cur && cur.parentId!=null){
+    d++;
+    cur = getItem(cur.parentId);
+  }
+  return d;
+}
+
+function getSubtreeIds(rootId){
+  const out = [];
+  (function dfs(id){
+    out.push(id);
+    getChildren(id).forEach(ch=>dfs(ch.id));
+  })(rootId);
+  return out;
+}
+
+function calcProgress(id){
+  const children = getChildren(id);
+  const item = getItem(id);
+  if(!item) return 0;
+  if(children.length===0) return item.checked ? 100 : 0;
+  const done = children.filter(c=>c.checked).length;
+  return Math.round((done / children.length) * 100);
+}
+
+function calcStatusByProgress(p){
+  if(p>=100) return "done";
+  if(p<=0) return "ready";
+  return "doing";
+}
+
+function syncParentFromChildren(parentId){
+  const p = calcProgress(parentId);
+  const parent = getItem(parentId);
+  if(!parent) return;
+  if(getChildren(parentId).length > 0) parent.checked = (p === 100);
+}
+
+function updateOverall(){
+  const tops = getChildren(null);
+  if(!tops || tops.length === 0){
+    overallEl.textContent = "0%";
+    return;
+  }
+  let sum = 0;
+  tops.forEach(t=> sum += calcProgress(t.id));
+  overallEl.textContent = Math.round(sum / tops.length) + "%";
+}
+
+/* ✅ 화면 그리기 함수 (시간 연동 수선 완료) */
+function render(){
+  tbody.innerHTML = "";
+  const flat = [];
+  function pushTree(parentId){
+    getChildren(parentId).forEach(item=>{
+      flat.push(item);
+      pushTree(item.id);
+    });
+  }
+  pushTree(null);
+
+  flat.forEach(item=>{
+    const tr = document.createElement("tr");
+    tr.dataset.id = item.id;
+    const depth = getDepth(item);
+    const progress = calcProgress(item.id);
+    const statusCls = calcStatusByProgress(progress);
+
+    tr.innerHTML = `
+      <td class="center"><input type="checkbox" class="cb" ${item.checked ? "checked":""}></td>
+      <td>
+        <div class="todo" style="padding-left:${depth*18}px;">
+          <span class="arrow">▶</span>
+          <span class="todo-text ${item.checked ? "completed":""}" contenteditable="true">${item.text}</span>
+        </div>
+      </td>
+      <td><span class="status ${statusCls}">${statusText(statusCls)}</span></td>
+      <td>${subjectSelectHTML(item.subject)}</td>
+      <td class="progress">${progress}%</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  updateOverall();
+  
+  // 🌸 [수선 포인트] '00:00:00' 고정값을 지우고, 메인 장부에서 시간을 가져옵니다.
+  const latestTime = localStorage.getItem('today_study_time') || "00:00:00";
+  studyTimeEl.textContent = latestTime;
+}
+
+function statusText(cls){
+  return cls==="done" ? "완료" : (cls==="doing" ? "진행 중" : "준비 중");
+}
+
+function subjectSelectHTML(value){
+  const opts = SUBJECTS.map(s=> `<option value="${s}" ${s===value?"selected":""}>${s}</option>`).join("");
+  return `<select class="subject">${opts}</select>`;
+}
+
+document.getElementById("addTopBtn").addEventListener("click", ()=>{
+  addTopItem();
+  save();
+  render();
+});
+
+tbody.addEventListener("click", (e)=>{
+  const tr = e.target.closest("tr");
+  if(!tr) return;
+  if(e.target.classList.contains("arrow")){
+    const id = Number(tr.dataset.id);
+    addChildItem(id);
+    syncParentFromChildren(id);
+    bubbleUp(id);
+    save();
+    render();
+  }
+});
+
+tbody.addEventListener("change", (e)=>{
+  const tr = e.target.closest("tr");
+  if(!tr) return;
+  const id = Number(tr.dataset.id);
+
+  if(e.target.classList.contains("cb")){
+    const checked = e.target.checked;
+    getSubtreeIds(id).forEach(sid=>{
+      const it = getItem(sid);
+      if(it) it.checked = checked;
+    });
+    bubbleUp(id);
+    save();
+    render();
+  }
+
+  if(e.target.classList.contains("subject")){
+    const it = getItem(id);
+    if(it){ it.subject = e.target.value; save(); render(); }
+  }
+});
+
+tbody.addEventListener("input", (e)=>{
+  const tr = e.target.closest("tr");
+  if(!tr || !e.target.classList.contains("todo-text")) return;
+  const it = getItem(Number(tr.dataset.id));
+  if(it){ it.text = e.target.textContent; save(); }
+});
+
+function bubbleUp(fromId){
+  let cur = getItem(fromId);
+  while(cur && cur.parentId!=null){
+    syncParentFromChildren(cur.parentId);
+    cur = getItem(cur.parentId);
+  }
+}
+
+/* ✅ 실행 부분 */
+window.addEventListener('DOMContentLoaded', () => {
+  load();   // 데이터 불러오기
+  render(); // 화면 그리기 (여기서 시간도 가져와요!)
+  bindHabitClicks();
+  loadHabits();
+});
+
+</script>
+<script>
+/* =========================
+   ✅ Habit Tracker (완전판)
+   - 월~일 7칸 토글
+   - localStorage 저장/로드
+   - 해빗 추가/삭제
+   - currentMajor(수학/영어)별로 분리 저장
+   ========================= */
+
+(function(){
+  // ✅ 네 페이지에 currentMajor 있으면 그거 사용, 없으면 기본 수학
+  function getMajor(){
+    return (typeof window.currentMajor === "string" && window.currentMajor.trim())
+      ? window.currentMajor.trim()
+      : "수학";
+  }
+
+  const DAYS = ["월","화","수","목","금","토","일"];
+
+  function key(){
+    return `habit_v1:${getMajor()}`;
+  }
+
+  function load(){
+    try{
+      return JSON.parse(localStorage.getItem(key()) || "[]");
+    }catch(e){
+      return [];
+    }
+  }
+
+  function save(data){
+    localStorage.setItem(key(), JSON.stringify(data));
+  }
+
+  function ensureDefault(){
+    const data = load();
+    if(data.length) return;
+    const seed = [
+      { name:"영어 단어", checks:[false,false,false,false,false,false,false] },
+      { name:"기출 1세트", checks:[false,false,false,false,false,false,false] },
+    ];
+    save(seed);
+  }
+
+  function render(){
+    const tbody = document.getElementById("habitBody");
+    if(!tbody) return;
+
+    const data = load();
+    tbody.innerHTML = "";
+
+    data.forEach((row, idx) => {
+      const tr = document.createElement("tr");
+
+      // 이름 셀
+      const nameTd = document.createElement("td");
+      nameTd.className = "habit-name";
+      nameTd.contentEditable = "true";
+      nameTd.innerText = row.name || "새 해빗";
+      nameTd.addEventListener("input", () => {
+        const d = load();
+        if(!d[idx]) return;
+        d[idx].name = nameTd.innerText.trim() || "새 해빗";
+        save(d);
+      });
+      tr.appendChild(nameTd);
+
+      // 7칸
+      for(let i=0;i<7;i++){
+        const td = document.createElement("td");
+        td.className = "habit-cell" + (row.checks && row.checks[i] ? " checked" : "");
+        td.dataset.row = String(idx);
+        td.dataset.day = String(i);
+        tr.appendChild(td);
+      }
+
+      // 삭제
+      const delTd = document.createElement("td");
+      const delBtn = document.createElement("button");
+      delBtn.className = "habit-del";
+      delBtn.type = "button";
+      delBtn.innerText = "삭제";
+      delBtn.addEventListener("click", () => {
+        const d = load();
+        d.splice(idx,1);
+        save(d);
+        render();
+      });
+      delTd.appendChild(delBtn);
+      tr.appendChild(delTd);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ✅ 이벤트 위임: 칸 클릭 토글
+  function bind(){
+    const tbody = document.getElementById("habitBody");
+    if(!tbody) return;
+
+    tbody.addEventListener("click", (e) => {
+      const cell = e.target.closest(".habit-cell");
+      if(!cell) return;
+
+      const r = Number(cell.dataset.row);
+      const d = Number(cell.dataset.day);
+
+      const data = load();
+      if(!data[r]) return;
+
+      if(!Array.isArray(data[r].checks) || data[r].checks.length !== 7){
+        data[r].checks = [false,false,false,false,false,false,false];
+      }
+
+      data[r].checks[d] = !data[r].checks[d];
+      save(data);
+
+      cell.classList.toggle("checked", data[r].checks[d]);
+    });
+
+    const addBtn = document.getElementById("habitAddBtn");
+    if(addBtn){
+      addBtn.addEventListener("click", () => {
+        const data = load();
+        data.push({ name:"새 해빗", checks:[false,false,false,false,false,false,false] });
+        save(data);
+        render();
+      });
+    }
+  }
+
+  // ✅ 외부에서 과목 토글할 때 재렌더 필요하면 이 함수만 호출하면 됨
+  window.renderHabit = function(){
+    ensureDefault();
+    render();
+  };
+
+  // 초기 실행
+  ensureDefault();
+  render();
+  bind();
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오딘 플래너 비교 포스터</title>
+  <!-- 화면을 사진으로 저장해주는 도구 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css");
+
+    :root {
+      --main-pink: #FF85A2;
+      --deep-pink: #FF5E89;
+      --soft-pink: #FFF0F5;
+      --other-gray: #A0A0A0;
+      --text-black: #333333;
+      --bg-gradient: linear-gradient(180deg, #FFC0D3 0%, #FFFFFF 100%);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Pretendard", sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    /* 인스타 업로드용 포스터 본체 */
+    #capture-area {
+      width: 100%;
+      max-width: 600px;
+      background: var(--bg-gradient);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 제목 영역 */
+    .title-section {
+      padding: 60px 20px 40px 20px;
+      text-align: center;
+    }
+
+    .title-section h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-black);
+      margin: 0 0 10px 0;
+    }
+
+    .title-section h1 {
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--deep-pink);
+      margin: 0;
+      line-height: 1.3;
+      text-shadow: 0 2px 10px rgba(255, 255, 255, 0.5);
+    }
+
+    /* 비교 카드 섹션 */
+    .comparison-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 0 20px 60px 20px;
+      gap: 15px;
+    }
+
+    .brand-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 10px; /* 카드 내부 여백 추가 */
+      border-radius: 24px;
+    }
+
+    /* [행동] 오딘 플래너 카드에만 연한 핑크 배경을 적용했습니다 */
+    .brand-card.odin-highlight {
+      background-color: rgba(255, 255, 255, 0.5); /* 라인업 섹션과 통일감 */
+      border: 1px solid rgba(255, 133, 162, 0.2);
+    }
+
+    .brand-tag {
+      padding: 8px 20px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .tag-other { background-color: var(--other-gray); }
+    .tag-odin { background-color: var(--main-pink); }
+
+    .product-img-wrapper {
+      width: 90%;
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(255, 133, 162, 0.2);
+      border: 3px solid white;
+      background: white;
+    }
+
+    .product-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 특징 리스트 */
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+    }
+
+    .feature-list li {
+      font-size: 13.5px;
+      margin-bottom: 12px;
+      color: #666;
+      line-height: 1.5;
+      position: relative;
+      padding-left: 18px;
+    }
+
+    .feature-list li::before {
+      content: '-';
+      position: absolute;
+      left: 0;
+    }
+
+    .odin-features li {
+      color: var(--text-black);
+      font-weight: 500;
+    }
+
+    /* 강조 텍스트: 이제 연한 배경 위에서 훨씬 잘 보입니다 */
+    .highlight-pink { 
+      color: var(--deep-pink); 
+      font-weight: 800; 
+      background-color: rgba(255, 255, 255, 0.6);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    /* 라인업 섹션 */
+    .lineup-section {
+      background-color: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(5px);
+      padding: 60px 20px;
+      text-align: center;
+      border-top: 1px solid rgba(255, 133, 162, 0.2);
+    }
+
+    .lineup-title {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+      text-decoration: underline;
+      text-underline-offset: 8px;
+      color: var(--text-black);
+    }
+
+    .lineup-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .lineup-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .mini-img-frame {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      border: 2px solid white;
+      background: white;
+    }
+
+    .mini-img {
+      width: 100%;
+      display: block;
+    }
+
+    .color-name-tag {
+      font-size: 14px;
+      font-weight: 700;
+      color: #FFF;
+      background: #333;
+      padding: 4px 16px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    /* 하단 정보 */
+    .footer {
+      padding: 60px 20px 30px 20px;
+      background: var(--deep-pink);
+      text-align: center;
+      color: white;
+    }
+
+    .footer .brand { font-size: 32px; font-weight: 900; display: block; margin-bottom: 5px; }
+    .footer .copy { font-size: 11px; opacity: 0.6; margin-top: 30px; }
+
+    /* 저장 버튼 */
+    #save-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      padding: 15px 25px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      z-index: 100;
+      transition: transform 0.2s;
+    }
+    #save-btn:hover { transform: scale(1.05); }
+  </style>
+</head>
+<body>
+
+  <div id="capture-area">
+    <div class="title-section">
+      <h2>왜? 이 제품이 좋을까요?</h2>
+      <h1>오답/시험 데이터 정리로 합격</h1>
+    </div>
+
+    <div class="comparison-section">
+      <!-- 타 브랜드 비교: 회색 톤 유지 -->
+      <div class="brand-card">
+        <div class="brand-tag tag-other">다른 브랜드 제품</div>
+        <div class="product-img-wrapper">
+          <img src="https://images.unsplash.com/photo-1583521214690-73421a1829a9?auto=format&fit=crop&w=400&q=80" alt="Common Planner" class="product-img">
+        </div>
+        <ul class="feature-list">
+          <li>타임트래커 및 오늘의 할 일만 표시</li>
+          <li>칸 추가 불가</li>
+          <li>시험 데이터 분석 x</li>
+          <li>6개월에 12,400원</li>
+          <li>12개월 시 24,800원</li>
+        </ul>
+      </div>
+
+      <!-- 오딘 플래너: [수정] 배경을 연한 핑크로 변경하여 텍스트 강조 -->
+      <div class="brand-card odin-highlight">
+        <div class="brand-tag tag-odin">본 브랜드 제품</div>
+        <div class="product-img-wrapper">
+          <img src="pink.jpg" alt="Odin Planner Pink" class="product-img">
+        </div>
+        <ul class="feature-list odin-features">
+          <li>타임트래커+할 일 + <span class="highlight-pink">오답분석 로직</span></li>
+          <li><span class="highlight-pink">무한정 칸 추가 가능</span></li>
+          <li>시험 데이터 분석 + <span class="highlight-pink">각 학교별 기출 평균 제공</span></li>
+          <li>평생권 <span class="highlight-pink">19,000원</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 라인업 섹션 -->
+    <div class="lineup-section">
+      <div class="lineup-title">LINE UP</div>
+      <div class="lineup-grid">
+        <div class="lineup-item">
+          <div class="mini-img-frame"><img src="pink.jpg" class="mini-img"></div>
+          <div class="color-name-tag">
+            <span class="color-dot" style="background: #FF85A2;"></span>핑크
+          </div>
+        </div>
+        <div class="lineup-item">
+          <div class="mini-img-frame"><img src="blue.jpg" class="mini-img"></div>
+          <div class="color-name-tag">
+            <span class="color-dot" style="background: #5D8AFF;"></span>블루
+          </div>
+        </div>
+        <div class="lineup-item">
+          <div class="mini-img-frame"><img src="green.jpg" class="mini-img"></div>
+          <div class="color-name-tag">
+            <span class="color-dot" style="background: #6DB36F;"></span>그린
+          </div>
+        </div>
+        <div class="lineup-item">
+          <div class="mini-img-frame"><img src="purple.jpg" class="mini-img"></div>
+          <div class="color-name-tag">
+            <span class="color-dot" style="background: #A084CF;"></span>퍼플
+          </div>
+        </div>
+      </div>
+      <p style="margin-top: 20px; font-size: 11px; color: #888;">*실제 색상은 이미지와 차이가 있을 수 있습니다.</p>
+    </div>
+
+    <div class="footer">
+      <span class="brand">Odin Planner</span>
+      <p style="font-size: 14px; opacity: 0.9; margin: 0;">당신의 합격 Route를 시작하세요</p>
+      <div class="copy">Copyright by 서연. All rights reserved.</div>
+    </div>
+  </div>
+
+  <button id="save-btn" onclick="saveImage()">📸 인스타용 이미지 저장</button>
+
+  <script>
+    function saveImage() {
+      const btn = document.getElementById('save-btn');
+      btn.style.display = 'none';
+
+      html2canvas(document.querySelector("#capture-area"), {
+        useCORS: true,
+        scale: 2
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'Odin_Comparison_SoftPink.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        btn.style.display = 'block';
+      });
+    }
+  </script>
+
+</body>
+</html>

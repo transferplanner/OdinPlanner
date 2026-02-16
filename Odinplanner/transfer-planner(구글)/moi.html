@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>모의고사 DB</title>
+
+<link id="themeLink" rel="stylesheet" href="">
+<script src="trial.js"></script>
+<script>
+        // 1. trial.js에서 저장된 '색상'을 가져오고
+        const theme = getSavedTheme()|| "pink";
+        // 2. 이 페이지의 '역할(check)'을 조합해서 경로 완성!
+        const themePath = `${theme}/moi.css`; 
+        document.getElementById("themeLink").href = themePath;
+    </script>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="note" onclick="location.href='index.html'">← 메인 대시보드로 돌아가기</div>
+
+    <h1>📝 모의고사 DB</h1>
+  
+
+  <div class="topbar">
+    <button class="add-btn" onclick="addRow()">+ 새 기록 추가</button>
+  </div>
+
+  <div class="toggles">
+    <!-- 과목 토글 -->
+    <div class="pill" id="subjectPill">
+      <button class="tab active" data-subject="수학">수학</button>
+      <button class="tab" data-subject="영어">영어</button>
+    </div>
+
+    <!-- 기간 토글 -->
+    <div class="pill" id="periodPill">
+      <button class="tab active" data-period="day">일</button>
+      <button class="tab" data-period="week">주</button>
+      <button class="tab" data-period="month">월</button>
+    </div>
+
+    <!-- 기준일 -->
+    <div class="refdate">
+      <label>기준일</label>
+      <input id="refDate" type="date" />
+    </div>
+  </div>
+
+  <section class="summary">
+    <div class="card">
+      <div class="k">📈 기간 평균 점수</div>
+      <div class="v" id="avgScore">- <small>점</small></div>
+    </div>
+    <div class="card">
+      <div class="k">🏅 최고 점수</div>
+      <div class="v" id="bestScore">- <small>점</small></div>
+    </div>
+  </section>
+
+  <div style="display:flex; align-items:center; gap:10px; background:#fff; padding:10px; border-radius:10px; box-shadow:var(--shadow);">
+  <span style="font-size:12px; font-weight:800; color:var(--pink-strong);">📊 모의고사 눈금:</span>
+  <input type="number" id="mo-y-min" value="0" style="width:50px;"> ~ 
+  <input type="number" id="mo-y-max" value="100" style="width:50px;">
+  <button type="button" onclick="refreshAll()" style="background:var(--pink); color:#fff; border:none; padding:4px 10px; border-radius:5px; cursor:pointer;">적용</button>
+</div>
+
+
+  <section class="chart-card">
+    <div class="chart-wrap">
+      <canvas id="scoreChart"></canvas>
+    </div>
+  </section>
+
+  <section class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:120px;">과목</th>
+          <th style="width:160px;">일자</th>
+          <th style="width:120px;">점수</th>
+          <th style="width:140px;">백분위</th>
+          <th style="width:140px;">관리</th>
+        </tr>
+      </thead>
+      <tbody id="mockBody"></tbody>
+    </table>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+/* =========================
+   [0] 저장 키/상태(전역)
+   ========================= */
+const MOCK_KEY = "mockDB_records_v1";  // ✅ localStorage 저장 키
+let currentSubject = "수학";           // ✅ 과목 토글 상태
+let currentPeriod  = "day";            // ✅ 기간 토글 상태(day/week/month)
+let refDateISO = todayISO();           // ✅ 기준일(yyyy-mm-dd)
+let records = loadRecords();           // ✅ 전체 기록(JSON 배열)
+
+function getMockRowCount(){
+  return document.querySelectorAll("#mockBody tr").length;
+}
+
+function guardMockLimit(){
+  // 체험 중이면 제한 없음
+
+  if (!isFullVersion){
+
+    if (isTrialExpired()){
+  // 체험 끝났으면 2줄까지만 허용
+    if (getMockRowCount() >= 2){
+      document.getElementById("lockBox").style.display = "flex";
+      return false;
+    }
+  }
+}
+  return true;
+}
+
+/* =========================
+   [1] 유틸: 날짜 처리
+   ========================= */
+function todayISO(){
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+function toDate(iso){ return new Date(iso + "T00:00:00"); } // ✅ 로컬 날짜 안정화
+function startOfWeek(d){ // ✅ 주 시작(월요일)
+  const x = new Date(d);
+  const day = (x.getDay()+6)%7; // 일(0) -> 6, 월(1)->0 ...
+  x.setDate(x.getDate() - day);
+  x.setHours(0,0,0,0);
+  return x;
+}
+function endOfWeek(d){
+  const s = startOfWeek(d);
+  const e = new Date(s);
+  e.setDate(e.getDate()+6);
+  e.setHours(23,59,59,999);
+  return e;
+}
+function startOfMonth(d){
+  const x = new Date(d);
+  x.setDate(1); x.setHours(0,0,0,0);
+  return x;
+}
+function endOfMonth(d){
+  const x = new Date(d);
+  x.setMonth(x.getMonth()+1, 0);
+  x.setHours(23,59,59,999);
+  return x;
+}
+function inPeriod(dateISO){
+  const d = toDate(dateISO);
+  const ref = toDate(refDateISO);
+
+  if(currentPeriod === "day"){
+    return d.toDateString() === ref.toDateString();
+  }
+  if(currentPeriod === "week"){
+    const s = startOfWeek(ref), e = endOfWeek(ref);
+    return d >= s && d <= e;
+  }
+  // month
+  const s = startOfMonth(ref), e = endOfMonth(ref);
+  return d >= s && d <= e;
+}
+
+/* =========================
+   [2] 저장/로드(핵심)
+   ========================= */
+function loadRecords(){
+  try{
+    const raw = localStorage.getItem(MOCK_KEY);
+    if(!raw) return seed();               // ✅ 최초 기본값
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : seed();
+  }catch(e){
+    return seed();
+  }
+}
+function saveRecords(){
+  localStorage.setItem(MOCK_KEY, JSON.stringify(records));
+}
+
+/* ✅ 최초 데이터(원하면 비워도 됨) */
+function seed(){
+  return [
+    { id: uid(), subject:"수학", date: todayISO(), score: 80, percentile: 85 },
+    { id: uid(), subject:"영어", date: todayISO(), score: 78, percentile: 82 }
+  ];
+}
+function uid(){ return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+
+/* =========================
+   [3] 필터링(토글 기준)
+   ========================= */
+function getFiltered(){
+  return records
+    .filter(r => r.subject === currentSubject)
+    .filter(r => r.date && inPeriod(r.date))
+    .sort((a,b)=> toDate(a.date) - toDate(b.date)); // ✅ 날짜순 정렬
+}
+
+/* =========================
+   [4] UI 렌더(테이블)
+   ========================= */
+const tbody = document.getElementById("mockBody");
+
+function renderTable(){
+  const list = getFiltered();
+  tbody.innerHTML = list.map(r => rowHTML(r)).join("");
+
+  // ✅ 행 이벤트 연결(입력 바뀌면 즉시 records 수정 + 저장 + 그래프업데이트)
+  tbody.querySelectorAll("tr").forEach(tr=>{
+    const id = tr.getAttribute("data-id");
+
+    const subSel = tr.querySelector(".subject");
+    const dateIn = tr.querySelector(".date");
+    const scoreTd = tr.querySelector(".score");
+    const percTd  = tr.querySelector(".perc");
+    const delBtn  = tr.querySelector(".del");
+
+    subSel.addEventListener("change", ()=>{
+      updateRecord(id, { subject: subSel.value });
+    });
+
+    dateIn.addEventListener("change", ()=>{
+      updateRecord(id, { date: dateIn.value });
+    });
+
+    scoreTd.addEventListener("input", ()=>{
+      updateRecord(id, { score: toNum(scoreTd.innerText) });
+    });
+
+    percTd.addEventListener("input", ()=>{
+      updateRecord(id, { percentile: toNum(percTd.innerText) });
+    });
+
+    delBtn.addEventListener("click", ()=>{
+      deleteRecord(id);
+    });
+  });
+}
+
+function rowHTML(r){
+  return `
+  <tr data-id="${r.id}">
+    <td>
+      <select class="subject">
+        <option ${r.subject==="수학"?"selected":""}>수학</option>
+        <option ${r.subject==="영어"?"selected":""}>영어</option>
+      </select>
+    </td>
+    <td>
+      <input class="date" type="date" value="${escapeAttr(r.date || todayISO())}" />
+    </td>
+    <td class="score" contenteditable="true">${escapeHTML(String(r.score ?? ""))}</td>
+    <td class="perc" contenteditable="true">${escapeHTML(String(r.percentile ?? ""))}</td>
+    <td>
+      <div class="actions">
+        <button class="icon-btn del" title="삭제">🗑️</button>
+      </div>
+    </td>
+  </tr>`;
+}
+function escapeHTML(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function escapeAttr(s){ return escapeHTML(s); }
+function toNum(x){
+  const n = parseFloat(String(x).replace(/[^\d.]/g,""));
+  return Number.isFinite(n) ? n : null;
+}
+
+/* =========================
+   [5] 데이터 조작(추가/수정/삭제)
+   ========================= */
+function addRow(){
+
+  const currentCount =
+  records.filter(r => r.subject === currentSubject).length;
+
+if(!isPaidUser){
+  // ✅ 새 줄은 현재 토글 기준으로 자동 입력
+  if (isTrialExpired() && currentCount >= 2){
+      document.getElementById("lockBox").style.display = "flex";
+      return;
+    }
+}
+  records.push({
+    id: uid(),
+    subject: currentSubject,
+    date: refDateISO,
+    score: 0,
+    percentile: 0
+  });
+  saveRecords();
+  refreshAll();
+}
+function updateRecord(id, patch){
+  const i = records.findIndex(r=>r.id===id);
+  if(i<0) return;
+  records[i] = { ...records[i], ...patch };
+  saveRecords();
+  refreshAccessStatus();
+  refreshAll(false); // ✅ 커서 튀는거 싫으면 테이블 재렌더는 상황따라 제어
+}
+function deleteRecord(id){
+  records = records.filter(r=>r.id!==id);
+  saveRecords();
+  refreshAccessStatus();
+  refreshAll();
+}
+
+/* =========================
+   [6] 차트(날짜 x축)
+   ========================= */
+let scoreChart;
+
+function initChart(){
+  const ctx = document.getElementById("scoreChart");
+  scoreChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "점수",
+        data: [],
+        tension: 0.25,
+        fill: false
+      }]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        tooltip:{
+          callbacks:{
+            label:(c)=> `${c.label}: ${c.raw}점`
+          }
+        }
+      },
+      scales:{
+        y:{
+          suggestedMin:0,
+          suggestedMax:100,
+          ticks:{ stepSize:10 }
+        }
+      }
+    }
+  });
+}
+
+function updateChartAndSummary(){
+
+  const yMin = Number(document.getElementById('mo-y-min')?.value) ?? 0;
+  const yMax = Number(document.getElementById('mo-y-max')?.value) ?? 100;
+
+  const list = getFiltered();
+  const labels = list.map(r=>r.date);
+  const values = list.map(r=>Number(r.score ?? 0));
+
+  scoreChart.data.labels = labels;
+  scoreChart.data.datasets[0].data = values;
+
+  scoreChart.options.scales.y.min = yMin;
+  scoreChart.options.scales.y.max = yMax;
+
+  scoreChart.update();
+
+  
+
+  // ✅ 요약(평균/최고)
+  if(values.length){
+    const sum = values.reduce((a,b)=>a+b,0);
+    const avg = Math.round(sum/values.length);
+    const best = Math.max(...values);
+    document.getElementById("avgScore").innerHTML  = `${avg} <small>점</small>`;
+    document.getElementById("bestScore").innerHTML = `${best} <small>점</small>`;
+  }else{
+    document.getElementById("avgScore").innerHTML  = `- <small>점</small>`;
+    document.getElementById("bestScore").innerHTML = `- <small>점</small>`;
+  }
+}
+
+/* =========================
+   [7] 토글/기준일 이벤트
+   ========================= */
+function bindToggles(){
+  // 기준일 기본값 세팅
+  const refInput = document.getElementById("refDate");
+  refInput.value = refDateISO;
+
+  refInput.addEventListener("change", ()=>{
+    refDateISO = refInput.value || todayISO();
+    refreshAccessStatus();
+    refreshAll();
+  });
+
+  // 과목 토글
+  document.getElementById("subjectPill").addEventListener("click", (e)=>{
+    const btn = e.target.closest(".tab");
+    if(!btn) return;
+    currentSubject = btn.dataset.subject;
+    setActiveTabs("subjectPill", "subject", currentSubject);
+    refreshAccessStatus();
+    refreshAll();
+  });
+
+  // 기간 토글
+  document.getElementById("periodPill").addEventListener("click", (e)=>{
+    const btn = e.target.closest(".tab");
+    if(!btn) return;
+    currentPeriod = btn.dataset.period;
+    setActiveTabs("periodPill", "period", currentPeriod);
+    refreshAccessStatus();
+    refreshAll();
+  });
+}
+function setActiveTabs(pillId, key, val){
+  const pill = document.getElementById(pillId);
+  pill.querySelectorAll(".tab").forEach(b=>{
+    b.classList.toggle("active", b.dataset[key] === val);
+  });
+}
+
+/* =========================
+   [8] 전체 새로고침(표+차트)
+   ========================= */
+function refreshAll(rerenderTable=true){
+  if(rerenderTable) renderTable();
+  updateChartAndSummary();
+}
+
+/* =========================
+   [9] 시작(초기화)
+   ========================= */
+(function init(){
+  // ✅ 기준일 기본: 오늘
+  refDateISO = todayISO();
+  document.getElementById("refDate").value = refDateISO;
+
+  // ✅ 차트 먼저 생성
+  initChart();
+
+  // ✅ 토글 이벤트 연결
+  bindToggles();
+
+  // ✅ 처음 렌더
+  refreshAll(true);
+})();
+</script>
+<div id="lockBox">
+  <div class="lock-inner">
+    <div class="lock-icon">🌸</div>
+    <h2>체험판 만료 알림</h2>
+    <p>사장님의 플래너를 무제한으로 이용하려면<br>정식 버전으로 전환이 필요합니다.</p>
+    
+    <button id="showInputBtn" onclick="handleAllPayments('transfer_planner.premium_upgrade')">평생 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_monthly_purchase')">1개월 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_three_month_purchase')">3개월 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_six_month_purchase')">6개월 이용권 결제하기 🌸</button>
+    
+    <button class="btn-close" onclick="document.getElementById('lockBox').style.display='none'">나중에 할게요</button>
+  </div>
+</div>
+
+</body>
+</html>

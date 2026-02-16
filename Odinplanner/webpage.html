@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Odin Planner | The Ultimate Academic Strategy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 서연님이 선호하시는 품격 있는 세리프(명조/궁서 느낌) 서체를 유지합니다 */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Inter:wght@400;700&display=swap');
+
+    :root {
+      --primary-rose: #880E4F;
+      --accent-pink: #FF85A2;
+      --deep-pink: #FF5E89;
+      --soft-white: #FCFAFB;
+      --odin-gradient: linear-gradient(135deg, #FF85A2 0%, #FF5E89 100%);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--soft-white);
+      color: #1D1D1F;
+      scroll-behavior: smooth;
+    }
+
+    .serif-font {
+      font-family: 'Noto Serif KR', serif;
+    }
+
+    /* 내비게이션 바의 컨테이너를 강조하기 위한 스타일 */
+    .nav-container {
+      background: linear-gradient(135deg, #FF85A2 0%, #FF5E89 100%);
+      box-shadow: 0 10px 30px rgba(255, 133, 162, 0.3);
+    }
+
+    .hero-image-container {
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.08);
+      border-radius: 40px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .feature-section {
+      padding: 15vh 0;
+      border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #FF5E89 0%, #880E4F 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* 원형 로고 배경색 */
+    .logo-circle-bg {
+      background: linear-gradient(135deg, #FF85A2 0%, #FF5E89 100%);
+      box-shadow: 0 20px 50px rgba(255, 133, 162, 0.3);
+    }
+
+    .btn-premium {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-premium:hover {
+      transform: scale(1.02);
+      box-shadow: 0 20px 40px rgba(255, 133, 162, 0.2);
+    }
+
+    /* 공식 분홍색 그라데이션 배경 클래스 */
+    .bg-odin-pink {
+      background: linear-gradient(135deg, #FF85A2 0%, #FF5E89 100%);
+    }
+
+    /* 라인업 카드 스타일 */
+    .color-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .color-card:hover {
+      transform: translateY(-5px);
+    }
+
+    /* 이미지 라인업 썸네일 효과 */
+    .lineup-thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 2rem;
+      border: 1px solid rgba(0,0,0,0.05);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- [Navbar] -->
+  <nav class="fixed w-full z-50 px-4 md:px-8 py-4">
+    <div class="max-w-7xl mx-auto h-24 nav-container rounded-[2rem] px-8 flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <img src="Odin_logo.png" alt="Odin" class="w-16 h-16 filter brightness-0 invert">
+        <span class="text-2xl md:text-3xl font-black tracking-tighter serif-font text-white uppercase">ODIN PLANNER</span>
+      </div>
+      <div class="hidden md:flex gap-12 text-[12px] font-bold tracking-[0.2em] text-white/80">
+        <a href="#vision" class="hover:text-white transition-colors">VISION</a>
+        <a href="#logic" class="hover:text-white transition-colors">ARCHITECT</a>
+        <a href="#pricing" class="hover:text-white transition-colors">ACCESS</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- [Hero Section] -->
+  <header class="pt-72 pb-40 px-8">
+    <div class="max-w-5xl mx-auto text-center">
+      <p class="text-[12px] font-black tracking-[0.4em] text-pink-400 mb-10 uppercase">Unlock Your Vision</p>
+      <h1 class="serif-font text-6xl md:text-[90px] font-black text-black mb-16 leading-[1.05] tracking-tight">
+        승리의 궤적을 그리는 <br> <span class="gradient-text">데이터 모델링</span>
+      </h1>
+      <p class="max-w-2xl mx-auto text-lg md:text-2xl text-gray-400 font-light leading-relaxed mb-24">
+        기록은 감정이 아닌 통계여야 합니다. <br>
+        오딘은 당신의 퍼포먼스를 정교한 아키텍처로 변환합니다.
+      </p>
+      
+      <div class="hero-image-container bg-white">
+        <img src="pink.jpg" alt="Odin Dashboard Original" class="w-full h-auto">
+      </div>
+    </div>
+  </header>
+
+  <!-- [Logic Intro] -->
+  <section class="py-40 px-8 bg-white" id="vision">
+    <div class="max-w-4xl mx-auto text-center flex flex-col items-center">
+      <h2 class="serif-font text-4xl md:text-6xl text-black mb-12">치밀한 로직이 <br> 결과를 결정합니다.</h2>
+      <p class="text-xl text-gray-500 font-light leading-relaxed mb-16">
+        아무도 주목하지 않았던 데이터의 상관관계를 분석하여 <br>
+        가장 객관적인 성공의 지도를 제시합니다.
+      </p>
+      <img src="Odin_logo.png" alt="Odin Logo" class="h-28 w-28 md:w-28 md:h-28 mx-auto block">
+    </div>
+  </section>
+
+  <!-- [6 Functions: Narrative Layout] -->
+  <section id="logic" class="px-8 bg-white">
+    <div class="max-w-6xl mx-auto">
+      
+      <!-- 01. 체크 -->
+      <div class="feature-section grid md:grid-cols-2 gap-20 items-center">
+        <div>
+          <span class="text-[11px] font-black tracking-[0.3em] text-pink-300 mb-4 block">MODULE 01</span>
+          <h3 class="serif-font text-4xl text-black mb-8">Check Module</h3>
+          <div class="text-gray-500 text-lg font-light leading-relaxed">
+            [서연님이 직접 입력할 공간입니다. 예: 실시간 학습 동기화 및 자가 진단 알고리즘]
+          </div>
+        </div>
+        <div class="rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <img src="체크.png" alt="Check" class="w-full">
+        </div>
+      </div>
+
+      <!-- 02. 성취 -->
+      <div class="feature-section grid md:grid-cols-2 gap-20 items-center">
+        <div class="order-2 md:order-1 rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <img src="성취.png" alt="Performance" class="w-full">
+        </div>
+        <div class="order-1 md:order-2">
+          <span class="text-[11px] font-black tracking-[0.3em] text-pink-300 mb-4 block">MODULE 02</span>
+          <h3 class="serif-font text-4xl text-black mb-8">Performance</h3>
+          <div class="text-gray-500 text-lg font-light leading-relaxed">
+            [서연님이 직접 입력할 공간입니다. 예: 누적 데이터 기반의 성취도 시각화 엔진]
+          </div>
+        </div>
+      </div>
+
+      <!-- 03. 기출 -->
+      <div class="feature-section grid md:grid-cols-2 gap-20 items-center">
+        <div>
+          <span class="text-[11px] font-black tracking-[0.3em] text-pink-300 mb-4 block">MODULE 03</span>
+          <h3 class="serif-font text-4xl text-black mb-8">Past Exam DB</h3>
+          <div class="text-gray-500 text-lg font-light leading-relaxed">
+            [서연님이 직접 입력할 공간입니다. 예: 전국 대학 기출 빅데이터 인덱싱]
+          </div>
+        </div>
+        <div class="rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <img src="기출.png" alt="Database" class="w-full">
+        </div>
+      </div>
+
+      <!-- 04. 모고 -->
+      <div class="feature-section grid md:grid-cols-2 gap-20 items-center">
+        <div class="order-2 md:order-1 rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <img src="모고.png" alt="Mock Exam" class="w-full">
+        </div>
+        <div class="order-1 md:order-2">
+          <span class="text-[11px] font-black tracking-[0.3em] text-pink-300 mb-4 block">MODULE 04</span>
+          <h3 class="serif-font text-4xl text-black mb-8">Mock Analysis</h3>
+          <div class="text-gray-500 text-lg font-light leading-relaxed">
+            [서연님이 직접 입력할 공간입니다. 예: 실전 대비 Z-Score 예측 시뮬레이션]
+          </div>
+        </div>
+      </div>
+
+      <!-- 05. 시험 -->
+      <div class="feature-section grid md:grid-cols-2 gap-20 items-center">
+        <div>
+          <span class="text-[11px] font-black tracking-[0.3em] text-pink-300 mb-4 block">MODULE 05</span>
+          <h3 class="serif-font text-4xl text-black mb-8">Exam Strategy</h3>
+          <div class="text-gray-500 text-lg font-light leading-relaxed">
+            [서연님이 직접 입력할 공간입니다. 예: 시험 변수 통제 및 오답 패턴 역추적]
+          </div>
+        </div>
+        <div class="rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <img src="시험.png" alt="Strategy" class="w-full">
+        </div>
+      </div>
+
+      <!-- 06. 목표 -->
+      <div class="feature-section grid md:grid-cols-2 gap-20 items-center border-none">
+        <div class="order-2 md:order-1 rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <img src="목표.png" alt="Target" class="w-full">
+        </div>
+        <div class="order-1 md:order-2">
+          <span class="text-[11px] font-black tracking-[0.3em] text-pink-300 mb-4 block">MODULE 06</span>
+          <h3 class="serif-font text-4xl text-black mb-8">Blueprint</h3>
+          <div class="text-gray-500 text-lg font-light leading-relaxed">
+            [서연님이 직접 입력할 공간입니다. 예: 최종 합격 대학을 향한 최단 거리 마일스톤]
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- [Access Section] -->
+  <section id="pricing" class="py-60 px-8 text-center bg-white">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="serif-font text-5xl text-black mb-16">The Future is Data.</h2>
+      <div class="mb-20">
+        <span class="text-gray-400 font-bold tracking-[0.4em] text-xs uppercase block mb-4">LIFETIME LICENSE</span>
+        <div class="text-8xl font-black text-black tracking-tighter">19,000<span class="text-2xl font-light text-gray-300 ml-4">KRW</span></div>
+      </div>
+      <button class="bg-odin-pink text-white px-20 py-7 rounded-full text-xl font-bold btn-premium uppercase tracking-widest">
+        Own Your Strategy
+      </button>
+    </div>
+  </section>
+
+  <!-- [New Section] 4가지 색상 그리드 라인업: 실제 사진으로 교체했습니다 -->
+  <section id="lineup" class="py-40 px-8 bg-white border-t border-gray-50">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-24">
+        <h2 class="serif-font text-4xl md:text-5xl text-black mb-8">오딘의 네 가지 색채</h2>
+        <p class="text-gray-400 font-light tracking-widest uppercase text-xs">Signature Color Palette</p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <!-- Pink -->
+        <div class="color-card text-center">
+          <img src="pink.jpg" alt="Classic Pink" class="lineup-thumb mb-6">
+          <h4 class="serif-font text-xl font-bold text-gray-800">Classic Pink</h4>
+          <p class="text-xs text-gray-400 mt-2 tracking-widest uppercase">The Original</p>
+        </div>
+        <!-- Blue -->
+        <div class="color-card text-center">
+          <img src="blue.jpg" alt="Ocean Blue" class="lineup-thumb mb-6">
+          <h4 class="serif-font text-xl font-bold text-gray-800">Ocean Blue</h4>
+          <p class="text-xs text-gray-400 mt-2 tracking-widest uppercase">Deep Focus</p>
+        </div>
+        <!-- Green -->
+        <div class="color-card text-center">
+          <img src="green.jpg" alt="Forest Green" class="lineup-thumb mb-6">
+          <h4 class="serif-font text-xl font-bold text-gray-800">Forest Green</h4>
+          <p class="text-xs text-gray-400 mt-2 tracking-widest uppercase">Inner Calm</p>
+        </div>
+        <!-- Purple -->
+        <div class="color-card text-center">
+          <img src="purple.jpg" alt="Mystic Purple" class="lineup-thumb mb-6">
+          <h4 class="serif-font text-xl font-bold text-gray-800">Mystic Purple</h4>
+          <p class="text-xs text-gray-400 mt-2 tracking-widest uppercase">Noble Vision</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- [Footer] -->
+  <footer class="py-20 px-8 border-t border-gray-100 bg-[#FCFAFB]">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+      <div class="flex items-center gap-2">
+        <img src="Odin_logo.png" alt="Odin" class="w-6 h-6 grayscale opacity-30">
+        <span class="text-sm font-black tracking-tighter serif-font opacity-20 uppercase">ODIN PLANNER</span>
+      </div>
+      <div class="text-[10px] font-bold tracking-[0.5em] text-gray-300 uppercase">
+        COPYRIGHT BY 서연. ALL RIGHTS RESERVED.
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

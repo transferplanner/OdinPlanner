@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>시험 DB - 목표 vs 현재</title>
+<link id="themeLink" rel="stylesheet" href="">
+<script src="trial.js"></script>
+<script>
+        // 1. trial.js에서 저장된 '색상'을 가져오고
+        const theme = getSavedTheme()|| "pink";
+        // 2. 이 페이지의 '역할(check)'을 조합해서 경로 완성!
+        const themePath = `${theme}/exam.css`; 
+        document.getElementById("themeLink").href = themePath;
+    </script>
+</head>
+
+<body>
+  <div class="container">
+    <a class="back" href="index.html">← 메인 대시보드로 돌아가기</a>
+    <div class="title">📈 시험 DB</div>
+    <div class="pill-toggle" id="subjectPill">
+      <button class="tab active" data-sub="수학">수학</button>
+      <button class="tab" data-sub="영어">영어</button>
+    </div>
+
+    <div class="sectionCard">
+      <div class="sectionHead"><div class="sectionTitle">📝 모의고사</div><span class="badge">Tracking</span></div>
+      <div class="goalBarBox" data-kind="mock">
+        <div class="goalBarTop"><div class="goalBarTitle">🎯 목표 점수 vs 현재 점수</div><div class="goalBarMeta"><span class="pctText">0%</span> · <span class="gapText">0점</span></div></div>
+        <div class="goalInputs"><label>목표</label><input type="number" class="goalInput" min="0" max="100" placeholder="예: 90" /><label>현재</label><div class="currentText">-</div></div>
+        <div class="goalTrack"><div class="goalFill"></div></div>
+        <div class="smallHint">현재 점수는 모의고사 DB에서 자동으로 읽어와. (없으면 -)</div>
+      </div>
+    </div>
+
+    <div class="sectionCard">
+      <div class="sectionHead"><div class="sectionTitle">📚 기출</div><span class="badge">Tracking</span></div>
+      <div class="goalBarBox" data-kind="past">
+        <div class="goalBarTop"><div class="goalBarTitle">🎯 목표 점수 vs 현재 점수</div><div class="goalBarMeta"><span class="pctText">0%</span> · <span class="gapText">0점</span></div></div>
+        <div class="goalInputs"><label>목표</label><input type="number" class="goalInput" min="0" max="100" placeholder="예: 90" /><label>현재</label><div class="currentText">-</div></div>
+        <div class="goalTrack"><div class="goalFill"></div></div>
+        <div class="smallHint">현재 점수는 기출 DB에서 자동으로 읽어와. (없으면 -)</div>
+      </div>
+    </div>
+
+    <section class="button-row">
+      <a class="edit-link" href="moi.html">✏️ 모의고사 수정</a>
+      <a class="edit-link" href="gi.html">✏️ 기출 수정</a>
+    </section>
+  </div>
+
+<script>
+let ACTIVE_SUBJECT = "수학";
+
+// 🌸 [수리 1] 버튼 이벤트: 밖에서도 renderGoalBox를 부를 수 있게 window 전역화 반영
+document.querySelectorAll("#subjectPill .tab").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelector("#subjectPill .active").classList.remove("active");
+    btn.classList.add("active");
+    ACTIVE_SUBJECT = btn.dataset.sub;
+    
+    document.querySelectorAll(".goalBarBox").forEach(box => {
+      if(window.renderGoalBox) window.renderGoalBox(box);
+    });
+  };
+});
+
+(() => {
+  // 🌸 [사장님의 정교한 KEY 설정 - 100% 복구]
+  const CURRENT_KEYS = {
+    mock: {
+      storageKey: "mockDB_records_v1", 
+      scoreFieldCandidates: ["score"],
+      dateFieldCandidates: ["date","createdAt","ts","timestamp"]
+    },
+    past: {
+      storageKey: "gi_db_v2", 
+      scoreFieldCandidates: ["score", "점수","totalScore","total","currentScore","rawScore","points"],
+      dateFieldCandidates: ["year","date","createdAt","ts","timestamp"]
+    }
+  };
+
+  function safeParse(raw){ try { return JSON.parse(raw); } catch(e){ return null; } }
+  function isFiniteNumber(v){ const n = Number(v); return Number.isFinite(n); }
+  function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+  // 🌸 [사장님의 만능 열쇠 로직 - 100% 복구]
+  function extractRows(data){
+    if(Array.isArray(data)) return data;
+    if(data && typeof data === "object"){
+      if(Array.isArray(data.db)) return data.db;
+      if(Array.isArray(data.records)) return data.records;
+      if(Array.isArray(data.rows)) return data.rows;
+      if(Array.isArray(data.data)) return data.data;
+      for(const k of Object.keys(data)){
+        if(Array.isArray(data[k])) return data[k];
+      }
+    }
+    return null;
+  }
+
+  // 🌸 [사장님의 가중치 점수 찾기 로직 - 100% 복구]
+  function readScoreFromObject(obj, candidates){
+    if(!obj || typeof obj !== "object") return null;
+    let best = null;
+    let bestScore = -Infinity;
+
+    for (const key of Object.keys(obj)) {
+      const v = obj[key];
+      if(!isFiniteNumber(v)) continue;
+      const lk = key.toLowerCase();
+      if (lk.includes("percentile") || lk.includes("백분위")) continue;
+
+      let s = 0;
+      if (lk.includes("score") || lk.includes("점수")) s += 10;
+      if (lk.includes("total") || lk.includes("총점") || lk.includes("raw")) s += 6;
+      if (lk.includes("percent") || lk.includes("퍼센")) s += 2;
+      const n = Number(v);
+      if (n >= 0 && n <= 100) s += 3;
+      if (candidates.some(c => c.toLowerCase() === lk)) s += 2;
+
+      if (s > bestScore) {
+        bestScore = s;
+        best = n;
+      }
+    }
+    return (bestScore > -Infinity) ? best : null;
+  }
+
+  // 🌸 [사장님의 날짜 읽기 로직 - 100% 복구]
+  function readTime(row, dateCandidates){
+    if(!row || typeof row !== "object") return null;
+    for(const k of dateCandidates){
+      const v = row[k];
+      if(v == null) continue;
+      if(isFiniteNumber(v)) return Number(v);
+      if(typeof v === "string"){
+        const d = new Date(v);
+        const t = d.getTime();
+        if(Number.isFinite(t)) return t;
+      }
+    }
+    return null;
+  }
+
+  // 🌸 [사장님의 최신행 찾기 로직 - 100% 복구]
+  function pickLatestRow(rows, dateCandidates){
+    if(!rows || rows.length === 0) return null;
+    let best = rows[rows.length - 1]; 
+    let bestT = -Infinity;
+
+    for(const row of rows){
+      const t = readTime(row, dateCandidates);
+      if(t !== null && t >= bestT){
+        bestT = t;
+        best = row;
+      }
+    }
+    return best;
+  }
+
+  // 🌸 [사장님의 연도 추출 로직 - 100% 복구]
+  function getYearFromRow(row, dateCandidates){
+    if(!row || typeof row !== "object") return null;
+    if(isFiniteNumber(row.year)) return Number(row.year);
+    for(const k of dateCandidates){
+      const v = row[k];
+      if(v == null) continue;
+      if(isFiniteNumber(v)) return new Date(Number(v)).getFullYear();
+      if(typeof v === "string"){
+        const m = v.match(/^(\d{4})/);
+        if(m) return Number(m[1]);
+        const d = new Date(v);
+        if(Number.isFinite(d.getFullYear())) return d.getFullYear();
+      }
+    }
+    return null;
+  }
+
+  // 🌸 [사장님의 스토리지 자동 탐지 로직 - 100% 복구]
+  function autoFindStorageKey(kind){
+    const keys = Object.keys(localStorage);
+    const hintWords = kind === "mock" ? ["mock","moi"] : ["gi","past"];
+    let bestKey = null; let bestScore = -1;
+
+    for(const k of keys){
+      const parsed = safeParse(localStorage.getItem(k));
+      const rows = extractRows(parsed);
+      if(!rows || rows.length === 0) continue;
+      const lk = k.toLowerCase();
+      let score = 0;
+      for(const w of hintWords) if(lk.includes(w)) score += 2;
+      if(score > bestScore){ bestScore = score; bestKey = k; }
+    }
+    return bestKey;
+  }
+
+  function resolveStorageKey(kind){
+    const conf = CURRENT_KEYS[kind];
+    if(conf.storageKey && localStorage.getItem(conf.storageKey)) return conf.storageKey;
+    return autoFindStorageKey(kind);
+  }
+
+  // 🌸 [수리 2] pickCurrentScore: 사장님 로직 다 살리고 '필터링'만 수정
+  window.pickCurrentScore = function(kind){
+    const conf = CURRENT_KEYS[kind];
+    const key = resolveStorageKey(kind);
+    if(!key) return null;
+
+    const data = safeParse(localStorage.getItem(key));
+    let rows = extractRows(data);
+    if(!rows || rows.length === 0) return null;
+
+    // 사장님이 원하신 과목 필터링 벽돌
+    rows = rows.filter(r => r.subject && String(r.subject).trim() === ACTIVE_SUBJECT.trim());
+    if(rows.length === 0) return null;
+
+    if(kind === "mock"){
+      const latest = pickLatestRow(rows, conf.dateFieldCandidates);
+      return readScoreFromObject(latest, conf.scoreFieldCandidates);
+    }
+
+    const buckets = new Map();
+    for(const r of rows){
+      const score = readScoreFromObject(r, conf.scoreFieldCandidates);
+      if(!isFiniteNumber(score)) continue;
+      const y = getYearFromRow(r, conf.dateFieldCandidates) ?? "ALL";
+      if(!buckets.has(y)) buckets.set(y, []);
+      buckets.get(y).push(Number(score));
+    }
+    if(buckets.size === 0) return null;
+    let chosenKey = "ALL";
+    const years = [...buckets.keys()].filter(isFiniteNumber).map(Number);
+    if(years.length) chosenKey = Math.max(...years);
+    const arr = buckets.get(chosenKey) || buckets.get("ALL");
+    return Math.round((arr.reduce((a,b)=>a+b,0)/arr.length)*10)/10;
+  };
+
+  const goalKey = (kind) => `exam_goal_v1:${ACTIVE_SUBJECT}:${kind}`;
+
+  // 🌸 [수리 3] renderGoalBox: 밖에서도 부를 수 있게 전역화
+  window.renderGoalBox = function(box){
+    const kind = box.dataset.kind;
+    const goalInput = box.querySelector(".goalInput");
+    const currentText = box.querySelector(".currentText");
+    const pctText = box.querySelector(".pctText");
+    const gapText = box.querySelector(".gapText");
+    const fill = box.querySelector(".goalFill");
+
+    const savedGoal = localStorage.getItem(goalKey(kind));
+    if(savedGoal !== null) goalInput.value = savedGoal;
+
+    const current = window.pickCurrentScore(kind);
+    currentText.textContent = (current === null) ? "-" : String(current);
+    const goal = isFiniteNumber(goalInput.value) ? Number(goalInput.value) : null;
+
+    let pct = 0; let gap = 0;
+    if(current !== null && goal !== null && goal > 0){
+      pct = clamp((current / goal) * 100, 0, 100);
+      gap = Math.max(0, goal - current);
+    } else {
+      gap = (goal !== null && current === null) ? goal : 0;
+    }
+
+    pctText.textContent = `${Math.round(pct)}%`;
+    gapText.textContent = (goal === null || goal === 0) ? "목표 입력 대기" : (current === null ? "데이터 없음" : (gap === 0 ? "달성 🎉" : `앞으로 ${gap}점`));
+    fill.style.width = `${pct}%`;
+
+    goalInput.oninput = () => {
+      localStorage.setItem(goalKey(kind), goalInput.value);
+      window.renderGoalBox(box);
+    };
+  };
+
+  function init(){ document.querySelectorAll(".goalBarBox").forEach(box => window.renderGoalBox(box)); }
+  init();
+})();
+</script>
+</body>
+</html>

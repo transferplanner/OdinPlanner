@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>목표 DB - 대학/모집요강 체크 (V1)</title>
+
+ <link id="themeLink" rel="stylesheet" href="">
+<script src="trial.js"></script>
+<script>
+        // 1. trial.js에서 저장된 '색상'을 가져오고
+        const theme = getSavedTheme()|| "pink";
+        // 2. 이 페이지의 '역할(check)'을 조합해서 경로 완성!
+        const themePath = `${theme}/goal.css`; 
+        document.getElementById("themeLink").href = themePath;
+    </script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="index.html">← 메인 대시보드로 돌아가기</a>
+      <button class="btn" id="resetBtn">초기화</button>
+    </div>
+
+    <div class="title">🧾 목표 DB</div>
+
+    <div class="grid">
+      <!-- 왼쪽 카드 -->
+      <div class="card pad">
+        <div class="cardTitle">🎯 지원 대학 선택
+          <div class="seg" id="goalSubjectSeg">
+  <button type="button" class="seg-btn active" data-subject="영어">영어</button>
+  <button type="button" class="seg-btn" data-subject="수학">수학</button>
+</div>
+        </div>
+
+        <div class="fieldRow">
+          <select id="schoolSelect">
+            <option value="">지원 대학 선택</option>
+            <option value="서강대">서강대</option>
+            <option value="성균관대">성균관대</option>
+            <option value="한양대">한양대</option>
+            <option value="중앙대">중앙대</option>
+            <option value="경희대">경희대</option>
+            <option value="한국외대">한국외대</option>
+            <option value="시립대">시립대</option>
+            <option value="건국대">건국대</option>
+            <option value="동국대">동국대</option>
+            <option value="홍익대">홍익대</option>
+            <option value="이화여대">이화여대</option>
+            <option value="숙명여대">숙명여대</option>
+          </select>
+
+          <select id="campusSelect" style="display:none;">
+            <option value="">캠퍼스 선택</option>
+          </select>
+        </div>
+
+        <input id="majorInput" placeholder="지원 학과 입력 (예: 도시공학과)" />
+
+        <div style="height:14px;"></div>
+        <div class="cardTitle">📌 대학 정보</div>
+
+        <div class="infoGrid">
+          <div class="infoRow">
+            <div class="label">D-Day</div>
+            <div class="value" id="ddayText">-</div>
+          </div>
+
+          <div class="infoRow">
+            <div class="label">모집요강</div>
+            <div class="value" id="guideText">-</div>
+          </div>
+
+          <div class="infoRow">
+            <div class="label">위치</div>
+            <div class="value" id="locText">-</div>
+          </div>
+
+          <!-- ✅ 위치 밑에 토익 토글 -->
+          <div class="infoRow" style="align-items:flex-start;">
+            <div class="label">토익</div>
+            <div class="value">
+              <div class="seg" id="toeicSeg">
+                <button type="button" class="seg-btn" data-mode="required">필수</button>
+                <button type="button" class="seg-btn" data-mode="optional">선택</button>
+                <button type="button" class="seg-btn" data-mode="none">미반영</button>
+              </div>
+
+              <div class="toeic-min" id="toeicMinWrap" style="margin-top:8px;">
+                <span class="mini">최소</span>
+                <input type="number" id="toeicMin" min="0" max="990" step="5" placeholder="예: 600" />
+                <span class="mini">점 이상</span>
+              </div>
+
+              <div class="small" id="toeicHint" style="margin-top:8px;">학교/캠퍼스별로 저장됨</div>
+            </div>
+          </div>
+
+          <div class="infoRow">
+            <div class="label">최소이수</div>
+            <div class="value" id="creditsText">-</div>
+          </div>
+        </div>
+
+       <div class="logowrap">
+  <div class="score-mini">
+    <div class="score-mini__item">
+      <div class="score-mini__label">학교 기출 평균</div>
+      <div class="score-mini__value"><span id="avgSchool">-</span>점</div>
+    </div>
+
+    <div class="score-mini__item">
+      <div class="score-mini__label">학교 기출 표준편차</div>
+      <div class="score-mini__value">±<span id="stdSchool">-</span></div>
+    </div>
+  </div>
+</div>
+</div>
+        
+
+      <!-- 오른쪽 카드 -->
+      <div class="card pad">
+        <div class="slideHead">
+          <button class="navBtn" id="prevBtn">←</button>
+          <div class="slideTitle" id="slideTitle">합격/추합 일정</div>
+          <button class="navBtn" id="nextBtn">→</button>
+        </div>
+
+        <div class="sliderWrap">
+          <div class="sliderTrack" id="sliderTrack">
+
+            <!-- 슬라이드 1: 합격/추합 -->
+            <section class="slide">
+              <div class="scheduleBox">
+                <div class="infoGrid" style="gap:10px;">
+                  <div class="infoRow"><div class="label">최초합</div><div class="value" id="firstPassText">-</div></div>
+                  <div class="infoRow"><div class="label">1차 추합</div><div class="value" id="wait1Text">-</div></div>
+                  <div class="infoRow"><div class="label">2차 추합</div><div class="value" id="wait2Text">-</div></div>
+                  <div class="infoRow"><div class="label">3차 추합</div><div class="value" id="wait3Text">-</div></div>
+                  <div class="infoRow"><div class="label">4차 추합</div><div class="value" id="wait4Text">-</div></div>
+                  <div class="infoRow"><div class="label">5차 추합</div><div class="value" id="wait5Text">-</div></div>
+                  <div class="infoRow"><div class="label">6차 추합</div><div class="value" id="wait6Text">-</div></div>
+                  <div class="infoRow"><div class="label">7차 추합</div><div class="value" id="wait7Text">-</div></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 슬라이드 2: 체크리스트 -->
+            <section class="slide">
+              <div class="cardTitle" style="margin-bottom:10px;">✅ 모집요강 기반 체크</div>
+
+              <div class="checklist" id="checklist"></div>
+
+              <div class="progressBox">
+                <div class="progressTop">
+                  <div>진행률</div>
+                  <div class="pct" id="pctText">0%</div>
+                </div>
+                <div class="bar"><div id="barFill"></div></div>
+                <div class="small" id="hintText" style="margin-top:8px;">대학 선택하면 학교별로 저장돼.</div>
+              </div>
+            </section>
+
+            <!-- ✅ 슬라이드 3: 지원자격(V1) -->
+            <section class="slide">
+              <div class="cardTitle" style="margin-bottom:10px;">🧩 지원자격 (V1)</div>
+
+              <div class="scheduleBox">
+                <div class="infoGrid" style="gap:10px;">
+
+                  <div class="infoRow">
+                    <div class="label">기준일</div>
+                    <div class="value">
+                      <input id="eligDate" placeholder="예: 2026-02-28" />
+                    </div>
+                  </div>
+
+                  <div class="infoRow">
+                    <div class="label">요약</div>
+                    <div class="value">
+                      <input id="eligSummary" placeholder="예: 일반/학사 중 해당 충족" />
+                    </div>
+                  </div>
+
+                  <div class="infoRow">
+                    <div class="label">내 케이스</div>
+                    <div class="value">
+                      <textarea id="eligCases" placeholder="예) [일반편입]&#10;- ...&#10;&#10;[학사편입]&#10;- ..."></textarea>
+                    </div>
+                  </div>
+
+                  <div class="infoRow" style="align-items:flex-start;">
+                    <div class="label">결론</div>
+                    <div class="value">
+                      <div class="seg" id="eligResult">
+                        <button type="button" class="seg-btn" data-mode="ok">지원가능</button>
+                        <button type="button" class="seg-btn" data-mode="need">확인필요</button>
+                        <button type="button" class="seg-btn" data-mode="no">불가</button>
+                      </div>
+                      <div class="small" style="margin-top:8px;">
+                        V1은 “정확성=근거(원문)” / “사용성=요약”으로 가는 게 안전.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ✅ 근거 펼치기(접기) -->
+                  <div class="infoRow" style="align-items:flex-start;">
+                    <div class="label">근거</div>
+                    <div class="value">
+                      <details id="proofDetails">
+                        <summary>모집요강 원문 붙여넣기 (펼치기)</summary>
+                        <div style="margin-top:10px;">
+                          <textarea id="eligProof" placeholder="여기에 원문/캡쳐 텍스트 붙여넣기"></textarea>
+                          <div class="proofHint">※ 이 부분은 “복붙 보관용”이라 V1에서 자동판정 안 함.</div>
+                        </div>
+                      </details>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 아래 목표 (공통) -->
+    <div class="goalWrap">
+      <div class="card pad">
+        <div class="cardTitle">🗓️ 이번주 목표</div>
+        <div class="goalGrid">
+          <div class="goalBox">
+            <div class="gTitle">이번 주 칭찬할 점</div>
+            <textarea id="weekPraise" placeholder="예) 루틴 지켰다 / 기출 복습했다"></textarea>
+          </div>
+          <div class="goalBox">
+            <div class="gTitle">이번 주 반성할 점</div>
+            <textarea id="weekReflect" placeholder="예) 오답정리를 미뤘다 / 잠을 줄였다"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card pad">
+        <div class="cardTitle">📅 이번달 목표</div>
+        <div class="goalGrid">
+          <div class="goalBox">
+            <div class="gTitle">이번 달 칭찬할 점</div>
+            <textarea id="monthPraise" placeholder="예) 시험 루틴 안정화 / 컨디션 관리"></textarea>
+          </div>
+          <div class="goalBox">
+            <div class="gTitle">이번 달 반성할 점</div>
+            <textarea id="monthReflect" placeholder="예) 계획 대비 속도 부족 / 집중 끊김"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+(() => {
+  const CHECK_ITEMS = [
+    { key:"credit", label:"최소이수학점 확인" },
+    { key:"apply",  label:"원서접수 완료" },
+    { key:"toeic",  label:"토익 여부 확인" },
+    { key:"docs",   label:"서류 제출 완료" },
+    { key:"essay",  label:"자소서/학업계획서 완료" },
+  ];
+
+  // ✅ 학교 DB (필요한 필드만 안정적으로)
+  // ✅✅ 변경점 1) 서강대/성균관대에 eligPreset 추가(학교별 프리셋)
+  const SCHOOL_DB = {
+    "서강대": {
+      firstPass:"2026-02-02", wait1:"2026-02-06", wait2:"-", wait3:"-",
+      exam:"2026-01-10",
+      loc:"서울 마포구 백범로 35",
+      locUrl:"https://naver.me/5PVDCcO8",
+      guide:"https://admission.sogang.ac.kr/enter/html/transfer/guide.asp",
+      credits:"출신 대학에서 정한 수료 기준 / 65학점 이상 충족",
+      logo:"https://upload.wikimedia.org/wikipedia/ko/0/04/%EC%84%9C%EA%B0%95%EB%8C%80%ED%95%99%EA%B5%90_%EB%A1%9C%EA%B3%A0.png",
+      eligPreset:{
+        date:"2026-01-11 이후 서류 인정",
+        summary:"일반/학사 중 해당 충족",
+        cases:
+`[일반편입]
+- 가) 국내·외 4년제 정규대학에서 2학년 이상 수료(예정) + 학점 충족
+  (1) 65학점 이상 취득
+  (2) 65학점 미만이면 출신대학 졸업소요학점의 1/2 이상(영국학제 3년제는 2/3) 취득
+- 나) 국내·외 정규 전문대학 졸업(예정) 또는 동등 학력 인정
+- 다) 학점은행: 전문학사 취득(예정) 또는 학사과정 + 65학점 이상 취득(예정)
+
+[학사편입]
+- 가) 국내·외 4년제 정규대학 학사학위 취득(예정)
+- 나) 학점은행 학사학위 취득(예정)`,
+        proof:"",
+        result:"need"
+      }
+    },
+    "성균관대": {
+      firstPass:"2026-02-06", wait1:"2026-02-12", wait2:"2026-02-13", wait3:"2026-02-19",
+      exam:"2026-01-03",
+      loc:"서울 종로구 성균관로 25-2",
+      locUrl:"https://naver.me/5bVsfPqP",
+      guide:"https://admission.skku.edu/admission/html/transfer/guide.html",
+      credits:"출신 대학에서 정한 수료 기준 /문과 60학점 이상,이과 65학점 이상, 사범대 70학점 이상",
+      logo:"https://upload.wikimedia.org/wikipedia/ko/7/7e/%EC%84%B1%EA%B7%A0%EA%B4%80%EB%8C%80_%EB%A1%9C%EA%B3%A0.jpg",
+      eligPreset:{
+        date:"2026-03-01 이전 지원조건 만족",
+        summary:"일반/학사 조건 확인",
+        cases:
+`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 등록 및 수료(예정)자(1년 2학기제 기준)
+  * 단, 지원 예정 단과대학별 지정된 학점 이상 취득(예정)자(모집요강 참고)
+- 2) 해외소재 대학: 학위취득학점의 1/2 이상 취득(예정)
+  * 3년제의 경우 2/3 이상 취득
+
+[학사편입]
+- 1) 학점은행/평생교육법: 전문학사학위 취득(예정)
+- 2) 학점은행 학사학위과정 등록 + 70학점 이상 취득(예정)
+- 3) 독학사: 학사학위 취득(예정)`,
+        proof:"",
+        result:"need"
+      }
+    },
+    "한양대": {
+      firstPass:"2026-02-04", wait1:"2026-02-09", wait2:"2026-02-10", wait3:"2026-02-19",
+      exam:"2026-01-10",
+      loc:"서울 성동구 왕십리로 220",
+      locUrl:"https://naver.me/5IStsohd",
+      guide:"https://go.hanyang.ac.kr/web/mojib/mojib.do?m_type=PYEONIP",
+      credits:"출신 대학에서 정한 수료 기준",
+      logo:"https://upload.wikimedia.org/wikipedia/ko/b/b4/%ED%95%9C%EC%96%91%EB%8C%80%ED%95%99%EA%B5%90.png",
+       eligPreset:{
+        date:"2026-01-01 이후 서류만 인정",
+        summary:"일반/학사 조건 확인",
+        cases:
+`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 등록 및 수료(예정)자(1년 2학기제 기준)
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+
+[학사편입]
+- 1) 학점은행/평생교육법: 전문학사학위 취득(예정)
+- 2) 학점은행 학사학위과정 등록 + 70학점 이상 취득(예정)
+- 3) 독학사: 학사학위 취득(예정)`,
+        proof:"",
+        result:"need"
+      }
+    },
+      
+      
+    "중앙대": {
+      firstPass:"2026-02-03", wait1:"2026-02-06", wait2:"2026-02-07", wait3:"2026-02-09", wait4:"2026-02-10",wait5:"2026-02-11",wait6:"2026-02-12",wait7:"2026-02-13~19(설 연휴 미포함)",
+      exam:"2026-01-11",
+      loc:"서울 동작구 흑석로 84",
+      locUrl:"https://naver.me/FV7YnkQi",
+      guide:"https://admission.cau.ac.kr/submenu.do?menuurl=fpotGuatDnhsqjCnl16KOw%3D%3D&categoryid=34",
+      credits:"출신 대학에서 정한 수료 기준/ 66학점 이상 취득",
+      logo:"https://upload.wikimedia.org/wikipedia/commons/0/0b/CAU_emblem.png",
+      eligPreset:{
+        date:"2026-02-28까지 수료 완료",
+        summary:"일반/학사 조건 확인",
+        cases:
+`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 등록 및 수료(예정)자(1년 2학기제 기준)
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+      }
+    },
+    
+        "경희대": {
+  campuses: {
+    "서울캠": {
+      firstPass:"2026-01-23", wait1:"2026-02-05", wait2:"2026-02-09", wait3:"2026-02-11",wait4:"2026-02-19",
+      exam:"2025-12-27",
+      loc:"서울 동대문구 경희대로 26",
+      locUrl:"https://naver.me/FsRs4dx8",
+      guide:"https://iphak.khu.ac.kr/submenu.do?menuurl=pNIJTWxI%2b8B8m%2bUBBAchHA%3d%3d&",
+      credits:"출신 대학에서 정한 수료 기준",
+      logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Kyung_Hee_Univ._Administration_Building%28Seoul_Campus%29.JPG/800px-Kyung_Hee_Univ._Administration_Building%28Seoul_Campus%29.JPG",
+      eligPreset: {
+        date:"2025-12-01 이후 제출서류",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 등록 및 수료(예정)자(1년 2학기제 기준)
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"출신 대학에서 정한 수료 기준",
+        result:"need"
+      }
+    },
+
+    "국제캠": {
+      firstPass:"2026-01-23", wait1:"2026-02-05", wait2:"2026-02-09", wait3:"2026.02.11",wait4:"2026-02-19",
+      exam:"2025-12-27",
+      loc:"경기 용인시 기흥구 덕양대로 1732",
+      locUrl:"https://naver.me/xRhEKiB7",
+      guide:"https://iphak.khu.ac.kr/submenu.do?menuurl=pNIJTWxI%2b8B8m%2bUBBAchHA%3d%3d&",
+      credits:"출신 대학에서 정한 수료 기준",
+      logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Kyung_Hee_Univ._Administration_Building%28Seoul_Campus%29.JPG/800px-Kyung_Hee_Univ._Administration_Building%28Seoul_Campus%29.JPG",
+      eligPreset: {
+        date:"2025-12-01 이후 제출 서류",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 등록 및 수료(예정)자(1년 2학기제 기준)
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+      }
+    }
+  }
+},
+    "한국외대": {
+      firstPass:"2026-01-30", wait1:"-", wait2:"-", wait3:"-",
+      exam:"2026-01-18",
+      loc:"서울 동대문구 이문로 107",
+      locUrl:"https://naver.me/xOxHnBhu",
+      guide:"https://adms.hufs.ac.kr/cms/FrBbsCon/BoardView.do?MENU_ID=380&CONTENTS_NO=3&SITE_NO=2&BOARD_SEQ=4&BBS_SEQ=21140",
+      credits:"출신 대학에서 정한 수료 기준/63학점 이상 수료",
+      logo:"https://upload.wikimedia.org/wikipedia/ko/c/c3/%ED%95%9C%EA%B5%AD%EC%99%B8%EA%B5%AD%EC%96%B4%EB%8C%80%ED%95%99%EA%B5%90_%EB%A1%9C%EA%B3%A0.png",
+      eligPreset: {
+        date:"2026-02-25까지 수료 완료",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 등록 및 수료(예정)자(1년 2학기제 기준)
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+      }
+    },
+    "시립대": {
+      firstPass:"2026-02-09", wait1:"2026-02-12", wait2:"2026-02-13", wait3:"2026-02-19",
+      exam:"2026-01-07",
+      loc:"서울 동대문구 서울시립대로 163",
+      locUrl:"https://naver.me/Fy2FBbHF",
+      guide:"https://admission.uos.ac.kr/admissionNew/html/pyunib/info.do?menuid=2002003001000000000",
+      credits:"출신 대학에서 정한 수료 기준/65학점 이상 수료",
+      logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/University_of_Seoul.svg/800px-University_of_Seoul.svg.png",
+      eligPreset: {
+        date:"2026-01-16 이내의 서류 발급",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 등록 및 수료(예정)자(1년 2학기제 기준)
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+      }
+    },
+    "건국대": {
+      firstPass:"2026-02-02", wait1:"2026-02-06", wait2:"2026-02-09", wait3:"2026-02-11", wait4:"2026-02-13", wait5:"2026-02-19",
+      exam:"2025-12-24",
+      loc:"서울 광진구 능동로 120",
+      locUrl:"https://naver.me/5uIYVVYd",
+      guide:"http://enter.konkuk.ac.kr/submenu.do?menuurl=lktmA6TpgpjUpNE2tkO4bw%3d%3d&",
+      credits:"출신 대학에서 정한 수료 기준 /문과 62학점 이상,이과/예술계 66학점 이상, 사범대 70학점 이상, 수의과대 86학점 이상",
+      logo:"https://upload.wikimedia.org/wikipedia/commons/f/fe/Konkuk_University_logotype.png",
+      eligPreset: {
+        date:"2026-01-08 기준 3개월 이내의 서류 발급",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 등록 및 수료(예정)자(1년 2학기제 기준)
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+- 3) 전문학사학위나 학사학위 과정 중 취득한 학점이 본교 모집단위별 2학년 수료기준에 해당하는 
+자
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+      }
+    },
+    "동국대": {
+      firstPass:"2026-02-02", wait1:"2026-02-13", wait2:"2026-02-14", wait3:"2026-02-18",wait4:"2026-02-19",
+      exam:"2026-01-04",
+      loc:"서울 중구 필동로1길 30",
+      locUrl:"https://naver.me/xSFaCEsF",
+      guide:"https://ipsi.dongguk.edu/admission/html/transfer/guide.asp",
+      credits:"출신 대학에서 정한 수료 기준",
+      logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/DONGGUK_UNIVERSITY_%ED%8C%94%EC%A0%95%EB%8F%84.jpg/800px-DONGGUK_UNIVERSITY_%ED%8C%94%EC%A0%95%EB%8F%84.jpg",
+      eligPreset: {
+        date:"2026-01-01 이후 서류 인정",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 등록 및 수료(예정)자(1년 2학기제 기준)
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+- 3) 전문학사학위나 학사학위 과정 중 취득한 학점이 70학점 이상인 자(서류제출 마감일까지)
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+      }
+    },
+    "홍익대": {
+      campuses:{
+        "서울캠": {
+          firstPass:"2026-02-10", wait1:"-", wait2:"-", wait3:"-",
+          exam:"2026-01-02",
+          loc:"서울 마포구 와우산로 94",
+          locUrl:"https://naver.me/5Q3t5f5U",
+          guide:"https://www.hongik.ac.kr/kr/admission/recruitment-transfer.do",
+          credits:"출신 대학에서 정한 수료 기준/66학점 이상 이수",
+          logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Hongik_University.svg/800px-Hongik_University.svg.png",
+          eligPreset: {
+        date:"2026-01-13 이내의 지원조건 만족",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 수료(예정)자 및 학위취득학점의 1/2 이상 취득(예정)한 자
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+- 3) 전문학사학위나 학사학위 과정 중 취득한 학점이 70학점 이상인 자
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+      }
+    },
+        
+        "세종캠": {
+          firstPass:"2026-02-10", wait1:"-", wait2:"-", wait3:"-",
+          exam:"2026-01-02",
+          loc:"세종 조치원읍 세종로 2639",
+          locUrl:"https://naver.me/xjg5rsmf",
+          guide:"https://www.hongik.ac.kr/kr/admission/recruitment-transfer.do",
+          credits:"출신 대학에서 정한 수료 기준/66학점 이상 이수",
+          logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Hongik_University.svg/800px-Hongik_University.svg.png",
+          eligPreset: {
+        date:"2026-01-13 이내의 지원조건 만족",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 수료(예정)자 및 학위취득학점의 1/2 이상 취득(예정)한 자
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+- 3) 전문학사학위나 학사학위 과정 중 취득한 학점이 70학점 이상인 자
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+      }
+    }
+  }
+},
+          
+          
+          
+          
+    "이화여대": {
+      firstPass:"2026-01-30", wait1:"2026-02-06", wait2:"2026-02-10", wait3:"2026-02-13",wait4:"2026-02-19",
+      exam:"2025-12-14",
+      loc:"서울 서대문구 이화여대길 52",
+      locUrl:"https://naver.me/FlZnZ6sl",
+      guide:"https://admission.ewha.ac.kr/admission/html/transfer/guide.asp",
+      credits:"출신 대학에서 정한 수료 기준/65학점 이상 이수",
+      logo:"https://upload.wikimedia.org/wikipedia/ko/3/31/%EC%9D%B4%ED%99%94%EC%97%AC%EC%9E%90%EB%8C%80%ED%95%99%EA%B5%90_%EB%A1%9C%EA%B3%A0.png",
+   eligPreset: {
+        date:"2025-12-24 이내 지원조건 만족",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 수료(예정)자 및 65학점 이상 이수한 자
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+- 3) 전문학사학위나 학사학위 과정 중 취득한 학점이 70학점 이상인 자(서류제출 마감일까지)
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+      }
+    },
+   
+   
+   
+   
+    "숙명여대": {
+      firstPass:"2026-02-02", wait1:"2026-02-09", wait2:"2026-02-11", wait3:"2026-02-13",wait4:"2026-02-19",
+      exam:"2025-12-13",
+      loc:"서울 용산구 청파로47길 100",
+      locUrl:"https://naver.me/Fy2B7zHs",
+      guide:"https://admission.sookmyung.ac.kr/admission/html/transfer/guide.asp",
+      credits:"출신 대학에서 정한 수료 기준 /문과 62학점 이상,이과/예술계 65학점 이상",
+      logo:"https://upload.wikimedia.org/wikipedia/ko/6/63/%EC%88%99%EB%AA%85%EC%97%AC%EC%9E%90%EB%8C%80%ED%95%99%EA%B5%90.png",
+      eligPreset: {
+        date:"2025-12-17 이후 서류 인정",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 수료(예정)자 및 65학점 이상 이수한 자
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+- 3) 전문학사학위나 학사학위 과정 중 취득한 학점이 70학점 이상인 자(서류제출 마감일까지)
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자
+
+[약학대학]
+- 1) 2024.03.01 이후 치뤄진 공인어학시험 점수를 제출할 수 있믄 자
+- 2) 화학 3학점/1과목 이상 혹은 생물학 3학점/1과목
+단, 마지막 학기 겨울 계절학기 수업은 인정하지 않음`,
+        proof:"",
+        result:"need"
+      }
+    },
+    국민대:{
+       firstpass : "2026-02-09", wait1: "-", wait2: "-", wait3: "-",
+       exam: "2025-12-21",
+       loc: "서울 성북구 정릉로 77",
+       locUrl:"https://naver.me/xWNgJF5Q",
+       guide: "https://admission.kookmin.ac.kr/transfer/application.php",
+       credit: "출신 대학에서 정한 수료 기준 /65학점 이상/법과대학,과학기술대학,공과대학,자동차대학,소프트대학,체육대학,건축대학은 68학점 이상",
+
+        eligPreset: {
+        date:"2026-01-01이후 서류 인정",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 수료(예정)자 및 65학점 이상 이수한 자
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+- 3) 전문학사학위나 학사학위 과정 중 취득한 학점이 80학점 이상인 자(서류제출 마감일까지)
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+       }
+    },
+  숭실대:{
+       firstpass : "2026-02-06", wait1: "2026-02-11", wait2: "2026-02-13", wait3: "2026-02-19",
+       exam: "2026-01-13",
+       loc: "서울 동작구 상도로 369",
+       locUrl:"https://naver.me/Fr7pSr4f",
+       guide:"https://iphak.ssu.ac.kr/mojip/req.asp?flag=3&page_no=1_4_2",
+       credit: "출신 대학에서 정한 수료 기준",
+       eligPreset: {
+        date:"2025-12-17이후 서류 인정",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 수료(예정)자 및 65학점 이상 이수한 자
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+- 3) 전문학사학위나 학사학위 과정 중 취득한 학점이 70학점 이상인 자(서류제출 마감일까지)
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+       }
+    },
+    세종대:{
+       firstpass : "2026-02-03", wait1: "-", wait2: "-", wait3: "2026-02-19",
+       exam: "2026-01-03",
+       loc: "서울 광진구 군자로 114",
+       locUrl : "https://naver.me/53lr2rPW",
+       guide : "http://ipsi.sejong.ac.kr/sub_page/sub4/0101.asp?tab1=4",
+       credit: "출신 대학에서 정한 수료 기준/65학점 이상 수료",
+       eligPreset: {
+        date:"2026-01-01이후 원본 제출",
+        summary:"일반/학사 조건 확인",
+        cases:`[일반편입]
+- 1) 2학년(정규 4개 학기, 계절학기 제외) 이상 수료(예정)자 및 65학점 이상 이수한 자
+- 2) 해외소재 대학: 2학년 이상 수료하고 학위취득학점의 1/2 이상 취득(예정)한 자
+- 3) 전문학사학위나 학사학위 과정 중 취득한 학점이 70학점 이상인 자(서류제출 마감일까지)
+
+[학사편입]
+- 1) 국내/외 정규대학 졸업자로 학사학위 취득자
+- 2) 학점 취득자 중 학사학위 취득자`,
+        proof:"",
+        result:"need"
+       }
+     },
+  };
+  
+localStorage.setItem('SCHOOL_DB', JSON.stringify(SCHOOL_DB));
+  // DOM
+  const $school = document.getElementById("schoolSelect");
+  const $campus = document.getElementById("campusSelect");
+  const $major  = document.getElementById("majorInput");
+
+  const $dday  = document.getElementById("ddayText");
+  const $guide = document.getElementById("guideText");
+  const $loc   = document.getElementById("locText");
+  const $credits = document.getElementById("creditsText");
+
+  const $firstPass = document.getElementById("firstPassText");
+  const $wait1 = document.getElementById("wait1Text");
+  const $wait2 = document.getElementById("wait2Text");
+  const $wait3 = document.getElementById("wait3Text");
+  const $wait4 = document.getElementById("wait4Text");
+  const $wait5 = document.getElementById("wait5Text");
+  const $wait6 = document.getElementById("wait6Text");
+  const $wait7 = document.getElementById("wait7Text");
+
+  const $checklist = document.getElementById("checklist");
+  const $pctText = document.getElementById("pctText");
+  const $barFill = document.getElementById("barFill");
+  const $hintText = document.getElementById("hintText");
+  const $resetBtn = document.getElementById("resetBtn");
+
+  const $weekPraise = document.getElementById("weekPraise");
+  const $weekReflect = document.getElementById("weekReflect");
+  const $monthPraise = document.getElementById("monthPraise");
+  const $monthReflect = document.getElementById("monthReflect");
+
+  const $track = document.getElementById("sliderTrack");
+  const $slideTitle = document.getElementById("slideTitle");
+  const $prev = document.getElementById("prevBtn");
+  const $next = document.getElementById("nextBtn");
+
+  // 토익 UI
+  const $toeicSeg = document.getElementById("toeicSeg");
+  const $toeicMinWrap = document.getElementById("toeicMinWrap");
+  const $toeicMin = document.getElementById("toeicMin");
+  const $toeicHint = document.getElementById("toeicHint");
+
+  // 지원자격 V1
+  const $eligDate = document.getElementById("eligDate");
+  const $eligSummary = document.getElementById("eligSummary");
+  const $eligCases = document.getElementById("eligCases");
+  const $eligResult = document.getElementById("eligResult");
+  const $eligProof = document.getElementById("eligProof");
+  const $proofDetails = document.getElementById("proofDetails");
+
+  let slideIndex = 0; // 0=일정, 1=체크, 2=지원자격
+  let goalSubject = "수학"
+
+// ============================
+// ✅ gi_db_v2 기반: (전체평균 - 학교평균) / 표준편차 로직
+// ============================
+
+
+
+
+  function renderSlide(){
+    $track.style.transform = `translateX(-${slideIndex * 33.3333}%)`;
+    $slideTitle.textContent =
+      slideIndex === 0 ? "합격/추합 일정" :
+      slideIndex === 1 ? "모집요강 기반 체크" :
+      "지원자격 (V1)";
+  }
+  $prev.addEventListener("click", ()=>{
+    slideIndex = (slideIndex + 2) % 3;
+    renderSlide();
+  });
+  $next.addEventListener("click", ()=>{
+    slideIndex = (slideIndex + 1) % 3;
+    renderSlide();
+  });
+
+  function calcDDay(targetStr){
+    if(!targetStr) return "-";
+    const today = new Date(); today.setHours(0,0,0,0);
+    const target = new Date(targetStr); target.setHours(0,0,0,0);
+    const diff = Math.ceil((target - today) / (1000*60*60*24));
+    if(!Number.isFinite(diff)) return "-";
+    return diff >= 0 ? `D-${diff}` : `D+${Math.abs(diff)}`;
+  }
+
+  function selectedKey(){
+    const s = $school.value || "none";
+    const c = ($campus.style.display !== "none" ? ($campus.value || "none") : "none");
+    return { s, c };
+  }
+
+  function checkStorageKey(){
+    const { s, c } = selectedKey();
+    return `won_check_v1:${s}:${c}`;
+  }
+  function metaStorageKey(){
+    const { s, c } = selectedKey();
+    return `won_meta_v1:${s}:${c}`;
+  }
+
+  function loadChecks(){
+    try{
+      const raw = localStorage.getItem(checkStorageKey());
+      return raw ? (JSON.parse(raw) || {}) : {};
+    }catch(e){ return {}; }
+  }
+  function saveChecks(state){
+    localStorage.setItem(checkStorageKey(), JSON.stringify(state || {}));
+  }
+
+  function loadMeta(){
+    try{
+      const raw = localStorage.getItem(metaStorageKey());
+      return raw ? (JSON.parse(raw) || {}) : {};
+    }catch(e){ return {}; }
+  }
+  function saveMeta(meta){
+    localStorage.setItem(metaStorageKey(), JSON.stringify(meta || {}));
+  }
+
+  function saveSelection(){
+    const state = {
+      school: $school.value || "",
+      campus: ($campus.style.display !== "none" ? ($campus.value || "") : ""),
+      major: ($major.value || "").trim()
+    };
+    localStorage.setItem("won_sel_v1", JSON.stringify(state));
+  }
+  function restoreSelection(){
+    try{
+      const raw = localStorage.getItem("won_sel_v1");
+      if(!raw) return;
+      const s = JSON.parse(raw) || {};
+      if(s.school) $school.value = s.school;
+      setupCampusUI();
+      if(s.campus && $campus.style.display !== "none") $campus.value = s.campus;
+      if(typeof s.major === "string") $major.value = s.major;
+    }catch(e){}
+  }
+
+  function saveGoals(){
+    const g = {
+      weekPraise: $weekPraise.value || "",
+      weekReflect: $weekReflect.value || "",
+      monthPraise: $monthPraise.value || "",
+      monthReflect: $monthReflect.value || ""
+    };
+    localStorage.setItem("won_goals_v1", JSON.stringify(g));
+  }
+  function restoreGoals(){
+    try{
+      const raw = localStorage.getItem("won_goals_v1");
+      if(!raw) return;
+      const g = JSON.parse(raw) || {};
+      $weekPraise.value = g.weekPraise || "";
+      $weekReflect.value = g.weekReflect || "";
+      $monthPraise.value = g.monthPraise || "";
+      $monthReflect.value = g.monthReflect || "";
+    }catch(e){}
+  }
+  [$weekPraise, $weekReflect, $monthPraise, $monthReflect].forEach(el=>{
+    el.addEventListener("input", saveGoals);
+  });
+
+  function getSelectedSchoolData(){
+    const s = $school.value;
+    if(!s) return null;
+    const root = SCHOOL_DB[s];
+    if(!root) return null;
+    if(root.campuses){
+      const c = $campus.value;
+      if(!c) return null;
+      return root.campuses[c] || null;
+    }
+    return root;
+  }
+
+  function setupCampusUI(){
+    const s = $school.value;
+    const root = SCHOOL_DB[s];
+
+    $campus.style.display = "none";
+    $campus.innerHTML = `<option value="">캠퍼스 선택</option>`;
+
+    if(root && root.campuses){
+      $campus.style.display = "block";
+      Object.keys(root.campuses).forEach(name=>{
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        $campus.appendChild(opt);
+      });
+    }
+  }
+
+  function setGuide(url){
+    if(!url){ $guide.textContent = "-"; return; }
+    $guide.innerHTML = `<a class="link" href="${url}" target="_blank" rel="noopener">모집요강 바로가기 →</a>`;
+  }
+  function setLoc(loc, locUrl){
+    if(!loc){ $loc.textContent = "-"; return; }
+    if(locUrl){
+      $loc.innerHTML = `<a class="link" href="${locUrl}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;font-weight:800;">${loc}</a>`;
+    }else{
+      $loc.textContent = loc;
+    }
+  }
+
+  function renderLeft(data){
+    if(!data){
+      $dday.textContent = "-";
+      $guide.textContent = "-";
+      $loc.textContent = "-";
+      $credits.textContent = "-";
+
+      renderToeic();
+      return;
+    }
+
+    $dday.textContent = calcDDay(data.exam);
+    setGuide(data.guide);
+    setLoc(data.loc, data.locUrl);
+    $credits.textContent = data.credits || "-";
+
+    renderToeic();
+  }
+
+  function renderSchedule(data){
+    $firstPass.textContent = data?.firstPass || "-";
+    $wait1.textContent = data?.wait1 || "-";
+    $wait2.textContent = data?.wait2 || "-";
+    $wait3.textContent = data?.wait3 || "-";
+  }
+
+  function computeProgress(checks){
+    const total = CHECK_ITEMS.length;
+    const done = CHECK_ITEMS.reduce((acc, it)=> acc + (checks[it.key] ? 1 : 0), 0);
+    const pct = total ? Math.round((done/total)*100) : 0;
+    return { done, total, pct };
+  }
+
+  function renderHint(){
+    const s = $school.value;
+    if(!s){
+      $hintText.textContent = "대학 선택하면 학교별로 저장돼.";
+      return;
+    }
+    if(SCHOOL_DB[s]?.campuses && !$campus.value){
+      $hintText.textContent = "캠퍼스까지 선택해야 체크 저장이 딱 고정돼.";
+      return;
+    }
+    $hintText.textContent = "체크하면 자동 저장됨.";
+  }
+
+  function renderProgress(){
+    const { pct } = computeProgress(loadChecks());
+    $pctText.textContent = `${pct}%`;
+    $barFill.style.width = `${pct}%`;
+  }
+
+  function renderChecklist(){
+    const checks = loadChecks();
+
+    $checklist.innerHTML = CHECK_ITEMS.map(item=>{
+      const checked = !!checks[item.key];
+      const chip = checked ? `<span class="chip done">완료</span>` : `<span class="chip">미완</span>`;
+      return `
+        <div class="checkItem">
+          <div class="checkLeft">
+            <input type="checkbox" data-key="${item.key}" ${checked ? "checked" : ""}/>
+            <div>${item.label}</div>
+          </div>
+          ${chip}
+        </div>
+      `;
+    }).join("");
+
+    $checklist.querySelectorAll("input[type='checkbox']").forEach(cb=>{
+      cb.addEventListener("change", (e)=>{
+        const key = e.target.dataset.key;
+        const next = loadChecks();
+        next[key] = e.target.checked;
+        saveChecks(next);
+        renderChecklist();
+        renderProgress();
+      });
+    });
+
+    renderProgress();
+  }
+
+  // ✅ 토익 토글: 학교/캠퍼스별 meta로 저장
+  function setSegActive(container, mode){
+    container.querySelectorAll(".seg-btn").forEach(btn=>{
+      btn.classList.toggle("active", btn.dataset.mode === mode);
+    });
+  }
+
+  function renderToeic(){
+    const data = getSelectedSchoolData();
+    const hasTarget = !!data;
+    const meta = loadMeta();
+    const toeic = meta.toeic || { mode:"optional", min:"" };
+
+    setSegActive($toeicSeg, toeic.mode || "optional");
+
+    const showMin = (toeic.mode === "required");
+    $toeicMinWrap.style.display = showMin ? "flex" : "none";
+    $toeicMin.value = toeic.min || "";
+
+    $toeicHint.textContent = hasTarget
+      ? "학교/캠퍼스별로 저장됨"
+      : "대학 선택하면 저장 시작됨";
+  }
+
+  function bindToeic(){
+    $toeicSeg.addEventListener("click",(e)=>{
+      const btn = e.target.closest(".seg-btn");
+      if(!btn) return;
+
+      const data = getSelectedSchoolData();
+      if(!data) return;
+
+      const meta = loadMeta();
+      meta.toeic = meta.toeic || {};
+      meta.toeic.mode = btn.dataset.mode;
+
+      saveMeta(meta);
+      renderToeic();
+    });
+
+    $toeicMin.addEventListener("input", ()=>{
+      const data = getSelectedSchoolData();
+      if(!data) return;
+      const meta = loadMeta();
+      meta.toeic = meta.toeic || {};
+      meta.toeic.min = ($toeicMin.value || "").trim();
+      saveMeta(meta);
+    });
+  }
+
+  // ✅ 지원자격(V1): meta.elig 로 저장
+  // ✅✅ 변경점 2) renderElig 안에 "프리셋 1회 자동 주입(seed)" 로직 추가
+  function renderElig(){
+    const data = getSelectedSchoolData();
+    const meta = loadMeta();
+    const elig = meta.elig || {};
+
+    const disabled = !data;
+
+    // ✅ 프리셋: 저장된 값이 거의 비어있으면(처음 선택한 학교) 1회 자동 채우기
+    const preset = data?.eligPreset;
+    const isEmpty =
+      !elig.date && !elig.summary && !elig.cases && !elig.proof && !elig.result;
+
+    if(preset && isEmpty && !elig._seeded){
+      meta.elig = {
+        ...elig,
+        date: preset.date || "",
+        summary: preset.summary || "",
+        cases: preset.cases || "",
+        proof: preset.proof || "",
+        result: preset.result || "need",
+        _seeded: true
+      };
+      saveMeta(meta);
+    }
+
+    const latest = (loadMeta().elig || {}); // 방금 seed됐을 수도 있으니 다시 읽음
+
+    [$eligDate, $eligSummary, $eligCases, $eligProof].forEach(el=>{
+      if(!el) return;
+      el.disabled = disabled;
+    });
+    if($eligResult){
+      $eligResult.querySelectorAll("button").forEach(b=> b.disabled = disabled);
+    }
+
+    $eligDate.value = latest.date || "";
+    $eligSummary.value = latest.summary || "";
+    $eligCases.value = latest.cases || "";
+    $eligProof.value = latest.proof || "";
+
+    const mode = latest.result || "need";
+    setSegActive($eligResult, mode);
+
+    if(typeof latest.proofOpen === "boolean"){
+      $proofDetails.open = latest.proofOpen;
+    }
+  }
+
+  function saveElig(){
+    const data = getSelectedSchoolData();
+    if(!data) return;
+
+    const meta = loadMeta();
+    meta.elig = meta.elig || {};
+    meta.elig.date = ($eligDate.value || "").trim();
+    meta.elig.summary = ($eligSummary.value || "").trim();
+    meta.elig.cases = ($eligCases.value || "");
+    meta.elig.proof = ($eligProof.value || "");
+    // ✅ seeded 플래그 유지(없으면 false로)
+    meta.elig._seeded = meta.elig._seeded ?? true;
+    saveMeta(meta);
+  }
+
+  function bindElig(){
+    [$eligDate, $eligSummary, $eligCases, $eligProof].forEach(el=>{
+      el.addEventListener("input", ()=>{
+        saveElig();
+      });
+    });
+
+    $eligResult.addEventListener("click",(e)=>{
+      const btn = e.target.closest(".seg-btn");
+      if(!btn) return;
+
+      const data = getSelectedSchoolData();
+      if(!data) return;
+
+      const meta = loadMeta();
+      meta.elig = meta.elig || {};
+      meta.elig.result = btn.dataset.mode;
+      meta.elig._seeded = meta.elig._seeded ?? true;
+      saveMeta(meta);
+      renderElig();
+    });
+
+    $proofDetails.addEventListener("toggle", ()=>{
+      const data = getSelectedSchoolData();
+      if(!data) return;
+      const meta = loadMeta();
+      meta.elig = meta.elig || {};
+      meta.elig.proofOpen = !!$proofDetails.open;
+      meta.elig._seeded = meta.elig._seeded ?? true;
+      saveMeta(meta);
+    });
+  }
+
+  function renderAll(){
+    const data = getSelectedSchoolData();
+    renderLeft(data);
+    renderSchedule(data);
+    renderHint();
+    renderChecklist();
+    renderToeic();
+    renderElig();
+  }
+
+ $school.addEventListener("change", () => {
+    // 1. 최신 상태 갱신 (결제 여부 확인)
+    refreshAccessStatus(); 
+
+    // 2. 기존에 저장된 학교가 있는지 확인 (키값: won_sel_v1)
+    const raw = localStorage.getItem("won_sel_v1");
+    let hasSaved = false;
+    if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.school) hasSaved = true;
+    }
+
+    // 3. 검문소: VIP가 아니고 + 체험판 끝났고 + 이미 학교를 골랐었다면?
+    if (!isPaidUser && isTrialExpired() && hasSaved) {
+        // ❌ 락 박스 띄우고 원래 학교로 강제 복구
+        const lock = document.getElementById("lockBox");
+        if (lock) lock.style.display = "flex";
+        
+        restoreSelection(); // ◀ 이게 원래 학교로 되돌려주는 함수야!
+        return; 
+    }
+
+    // 4. ✅ 자격 통과: 학교 변경 허용
+    setupCampusUI();
+    saveSelection(); // 여기서 선택한 학교가 저장됨
+    renderAll();
+    
+    // 만약 방금 처음으로 학교를 정한 거라면 (체험 종료 후 첫 선택)
+    // 바로 잠궈버리기 위해 한번 더 상태 체크
+    if (!isPaidUser && isTrialExpired()) {
+        $school.disabled = true; 
+    }
+});
+
+  $campus.addEventListener("change", () => {
+    refreshAccessStatus(); // 최신 상태 확인
+
+    const raw = localStorage.getItem("won_sel_v1");
+    let hasSaved = false;
+    if (raw) {
+        const parsed = JSON.parse(raw);
+        // 학교와 캠퍼스가 모두 저장되어 있었는지 확인
+        if (parsed.school && parsed.campus) hasSaved = true;
+    }
+
+    // ❌ 결제 안 함 + 체험 만료 + 이미 저장된 캠퍼스가 있음 = 락!
+    if (!isPaidUser && isTrialExpired() && hasSaved) {
+        const lock = document.getElementById("lockBox");
+        if (lock) lock.style.display = "flex";
+        
+        restoreSelection(); // 원래 선택했던 캠퍼스로 복구
+        return;
+    }
+
+    // ✅ 통과 시 정상 저장
+    saveSelection();
+    renderAll();
+});
+
+  $major.addEventListener("input", () => {
+    refreshAccessStatus();
+
+    const raw = localStorage.getItem("won_sel_v1");
+    let hasSaved = false;
+    if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.major) hasSaved = true; // 이미 학과를 적었었는지 확인
+    }
+
+    // ❌ 락 조건
+    if (!isPaidUser && isTrialExpired() && hasSaved) {
+        const lock = document.getElementById("lockBox");
+        if (lock) lock.style.display = "flex";
+        
+        restoreSelection(); // 입력 전 상태로 강제 복구
+        return;
+    }
+
+    // ✅ 통과 시 저장
+    saveSelection();
+});
+
+  $resetBtn.addEventListener("click", ()=>{
+    const ok = confirm("현재 선택된 학교/캠퍼스의 체크 + 토익 + 지원자격 + 지원학과를 초기화할까?");
+    if(!ok) return;
+
+    localStorage.removeItem(checkStorageKey());
+    localStorage.removeItem(metaStorageKey());
+
+    $major.value = "";
+    saveSelection();
+
+    renderAll();
+  });
+
+  /* 1. 데이터를 불러오는 안전한 창고 (gi_db_v2) */
+function loadGiDB(){
+  try{
+    const raw = localStorage.getItem("gi_db_v2");
+    if(!raw) return { db: [] };
+    const parsed = JSON.parse(raw);
+    return { db: Array.isArray(parsed.db) ? parsed.db : [] };
+  }catch(e){
+    return { db: [] };
+  }
+}
+
+/* 2. 학교 이름을 깔끔하게 다듬는 도구 */
+function normSchool(name){
+  return String(name || "").trim().replace(/\s+/g, "").replace(/대학교$/,"대").replace("대학교","대");
+}
+
+/* 3. 평균 계산기 (데이터가 없으면 null 반환) */
+function mean(arr){
+  if(!arr || arr.length === 0) return null;
+  return arr.reduce((a,b)=>a+b,0) / arr.length;
+}
+
+/* 4. 표준편차 (데이터가 1개여도 안 터지게 보정) */
+function stddev(arr){
+  if(!arr || arr.length < 2) return 0.000001; // 0으로 나누기 방지용 아주 작은 값
+  const m = mean(arr);
+  const v = arr.reduce((acc,x)=>acc + (x-m)*(x-m), 0) / (arr.length - 1);
+  return Math.sqrt(v);
+}
+
+/* 5. 최근 n개년 데이터 필터링 */
+function getRecentYears(db, subject, n=3){
+  const years = Array.from(new Set(
+    db.filter(r => r.subject === subject && Number.isFinite(Number(r.year)))
+      .map(r => Number(r.year))
+  )).sort((a,b)=>b-a);
+  return years.slice(0, n);
+}
+
+/* 6. 통계 분석 엔진 */
+// 1. 통계 빌딩 건설 (과목 기본값을 없애고 실시간 과목을 보게 했어요!)
+function buildStats3y({ subject = currentMajor, recentN = 3 } = {}) {
+  const { db } = loadGiDB();
+  const years = getRecentYears(db, subject, recentN);
+
+  if(!years.length) return { years:[], overallAvg:null, bySchool:new Map() };
+
+  const rows = db.filter(r =>
+    r.subject === subject &&
+    years.includes(Number(r.year)) &&
+    r.school &&
+    Number.isFinite(Number(r.score))
+  );
+
+  const allScores = rows.map(r => Number(r.score));
+  const overallAvg = mean(allScores);
+
+  const bySchoolScores = new Map();
+  for(const r of rows){
+    const s = normSchool(r.school);
+    const score = Number(r.score);
+    if(!bySchoolScores.has(s)) bySchoolScores.set(s, []);
+    bySchoolScores.get(s).push(score);
+  }
+
+  const bySchool = new Map();
+  for(const [school, scores] of bySchoolScores.entries()){
+    bySchool.set(school, {
+      scores,
+      avg: mean(scores),
+      std: stddev(scores),
+      n: scores.length
+    });
+  }
+  return { years, overallAvg, bySchool };
+}
+
+// 2. 가장 유리한 학교 선정 (사장님 맞춤형 로직!)
+function pickBestSchoolByZ({ subject = currentMajor, recentN = 3 } = {}) {
+  const stats = buildStats3y({ subject, recentN });
+  const { years, overallAvg, bySchool } = stats;
+
+  if(overallAvg === null || isNaN(overallAvg)) return null;
+
+  let best = null;
+  for(const [school, st] of bySchool.entries()){
+    const schoolAvg = st.avg;
+    if(schoolAvg === null || isNaN(schoolAvg)) continue;
+
+    // 🔴 [수정] Z-score에 '절대 점수 보너스'를 더해 시립대를 응원합니다!
+    const diff = overallAvg - schoolAvg;
+    const z = diff / (st.std || 1);
+    
+    // 🌸 사장님의 직관을 반영: 점수가 높을수록 강력한 추가 점수를 부여해요.
+    const scoreBonus = schoolAvg * 0.5; 
+    const finalPower = z + scoreBonus; 
+
+    const row = { school, overallAvg, schoolAvg, std: st.std, diff, z: finalPower, years, n: st.n };
+
+    if(!best || row.z > best.z){
+      best = row;
+    }
+  }
+  return best;
+}
+
+
+/* 8. 화면에 결과를 그려주는 함수 */
+/* [수정 버전] 8. 내가 선택한 학교의 데이터를 보여주는 함수 */
+function renderGoalCardFromGi(){
+  const currentSubject = (typeof goalSubject !== 'undefined') ? goalSubject : "영어"; 
+  const stats = buildStats3y({ subject: currentSubject, recentN: 3 }); // 전체 통계 가져오기
+  
+  // 1. [핵심] 지금 사장님이 상단 셀렉트 박스에서 선택한 학교 이름 가져오기
+  const selectedName = normSchool($school.value); 
+  
+  // 2. 그 학교의 데이터만 쏙 뽑아내기
+  const schoolData = stats.bySchool.get(selectedName);
+
+  const elements = {
+    avgSchool: document.getElementById("avgSchool"),
+    stdSchool: document.getElementById("stdSchool"),
+    bestName: document.getElementById("bestSchoolName"), // 이제 '선택된 학교 이름'으로 쓰임
+    avg3y: document.getElementById("avg3y"),
+    diff: document.getElementById("avgDiff")
+  };
+
+  if(!schoolData || !stats.overallAvg){
+    Object.values(elements).forEach(el => { if(el) el.textContent = "-"; });
+    if(elements.bestName) elements.bestName.textContent = "데이터 부족";
+    return;
+  }
+
+  // 3. 화면에 사장님이 선택한 그 학교의 정보만 뿌려줍니다!
+  if(elements.bestName) elements.bestName.textContent = selectedName;
+  if(elements.avg3y) elements.avg3y.textContent = stats.overallAvg.toFixed(1);
+  if(elements.avgSchool) elements.avgSchool.textContent = schoolData.avg.toFixed(1);
+  if(elements.stdSchool) elements.stdSchool.textContent = schoolData.std.toFixed(1);
+
+  if(elements.diff){
+    const diff = stats.overallAvg - schoolData.avg;
+    const sign = diff >= 0 ? "+" : "";
+    elements.diff.textContent = `${sign}${diff.toFixed(1)}`;
+  }
+}
+
+
+  // [행동] : 영/수 토글 버튼에 '생명'을 불어넣습니다.
+  const $goalSeg = document.getElementById("goalSubjectSeg");
+
+  if ($goalSeg) {
+    $goalSeg.addEventListener("click", (e) => {
+      const btn = e.target.closest(".seg-btn");
+      if (!btn) return;
+
+      // 1. 클릭된 버튼의 과목(영어/수학)을 가져와서 사장님의 변수에 저장!
+      goalSubject = btn.dataset.subject;
+
+      // 2. 버튼 모양을 '활성화' 상태로 바꿔줍니다.
+      $goalSeg.querySelectorAll(".seg-btn").forEach(b => {
+        b.classList.toggle("active", b === btn);
+      });
+
+      // 3. [핵심] 과목이 바뀌었으니 다시 계산해서 화면에 그려줘!
+      renderGoalCardFromGi();
+    });
+  }
+
+
+
+  // init
+  restoreSelection();
+  restoreGoals();
+  setupCampusUI();
+  renderSlide();
+  renderGoalCardFromGi();
+  bindToeic();
+  bindElig();
+  // ✅ 아까 그 함수들 대신, 이 짧은 코드를 init 부분에 넣어주는 게 훨씬 깔끔해!
+  refreshAccessStatus(); // 상태 먼저 확인하고
+
+  if (!isPaidUser && isTrialExpired()) {
+      const raw = localStorage.getItem("won_sel_v1");
+      if (raw) {
+         const parsed = JSON.parse(raw);
+        // 이미 저장된 값이 있다면 아예 비활성화해서 손도 못 대게 하기
+          if (parsed.school) $school.disabled = true;
+          if (parsed.campus) $campus.disabled = true;
+          if (parsed.major) $major.disabled = true;
+    }
+}
+  renderAll();
+})();
+
+// ✅ 목표 DB: "3일 지나면 학교 변경 시 락" 완전판 (이 블록만 넣으면 됨)
+// 전제: isTrialExpired() 함수는 이미 존재
+// 전제: 드롭다운 id="schoolSelect", 락 오버레이 id="lockBox"
+
+
+
+</script>
+<div id="lockBox">
+  <div class="lock-inner">
+    <div class="lock-icon">🌸</div>
+    <h2>체험판 만료 알림</h2>
+    <p>사장님의 플래너를 무제한으로 이용하려면<br>정식 버전으로 전환이 필요합니다.</p>
+    
+    <button id="showInputBtn" onclick="handleAllPayments('transfer_planner.premium_upgrade')">평생 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_monthly_purchase')">1개월 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_three_month_purchase')">3개월 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_six_month_purchase')">6개월 이용권 결제하기 🌸</button>
+    
+    
+    <button class="btn-close" onclick="document.getElementById('lockBox').style.display='none'">나중에 할게요</button>
+  </div>
+</div>
+</body>
+</html>

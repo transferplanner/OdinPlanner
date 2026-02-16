@@ -1,0 +1,193 @@
+
+  :root{
+  --bg:#fbfbfa;
+  --card:#fff;
+
+  /* index 톤 기준 */
+  --pink:#9b8ccf;          /* 메인 보라 */
+  --pink-soft:#ece9fb;     /* 연보라 배경 */
+
+  --text:#37352f;
+  --muted:#8a8a9a;
+
+  --line:#ede9f3;
+  --shadow:0 6px 18px rgba(0,0,0,.06);
+  --radius:16px;
+}
+
+/* base */
+*{box-sizing:border-box}
+body{
+  margin:0;
+  padding:28px 18px;
+  background:var(--bg);
+  font-family:sans-serif;
+  color:var(--text);
+}
+.container{max-width:980px;margin:0 auto;}
+.back{
+  color:var(--muted);
+  font-size:14px;
+  text-decoration:none;
+  display:block;
+  margin-bottom:15px;
+  font-weight:800;
+}
+.title{font-size:28px;font-weight:900;margin-bottom:18px}
+
+/* cards */
+.sectionCard{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+  margin-bottom:16px;
+}
+.sectionHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+.sectionTitle{
+  font-weight:900;
+  font-size:16px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.badge{
+  font-size:11px;
+  color:var(--pink);
+  background:var(--pink-soft);
+  padding:4px 10px;
+  border-radius:10px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+/* goal bar */
+.goalBarBox{
+  margin-top:10px;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid var(--line);     /* ✅ soft 통일 */
+  background:#fff;
+}
+.goalBarTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.goalBarTitle{font-weight:900;font-size:14px;color:var(--text)}
+.goalBarMeta{font-weight:900;font-size:12px;color:var(--muted);white-space:nowrap}
+
+.goalInputs{
+  display:grid;
+  grid-template-columns:44px 1fr 44px 1fr;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
+  font-weight:900;
+  font-size:13px;
+}
+.goalInputs input{
+  height:38px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  padding:0 10px;
+  font-weight:900;
+  outline:none;
+  background:#fff;
+}
+.goalInputs input:focus{
+  border-color: rgba(147,129,198,0.60);     /* ✅ 인덱스 보라 포커스 */
+  box-shadow: 0 0 0 4px rgba(147,129,198,0.18);
+}
+.currentText{
+  height:38px;
+  display:flex;
+  align-items:center;
+  padding:0 10px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:var(--bg);
+  font-weight:900;
+}
+
+/* ✅ 트랙/필도 “인덱스 톤” */
+.goalTrack{
+  height:12px;
+  border-radius:999px;
+  background:var(--pink-soft);
+  border:1px solid var(--line);
+  overflow:hidden;
+}
+.goalFill{
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  background:linear-gradient(90deg, #b6afeb, #9b8ccf);
+  transition:width .25s ease;
+}
+
+.smallHint{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:800;
+  line-height:1.5;
+}
+
+/* pills */
+.pill-toggle{
+  display:inline-flex;
+  background:#f1eff8;               /* ✅ 회색 → 연보라 */
+  padding:4px;
+  border-radius:999px;
+  margin-bottom:20px;
+  border:1px solid var(--line);
+}
+.pill-toggle button{
+  border:none;
+  background:transparent;
+  padding:8px 16px;
+  border-radius:999px;
+  font-weight:900;
+  cursor:pointer;
+  color:var(--muted);
+  transition:all .2s;
+}
+.pill-toggle button.active{
+  background:var(--pink);
+  color:#fff;
+}
+
+/* buttons */
+.button-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:18px;
+}
+.edit-link{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+  background:var(--pink);
+  color:#fff;
+  border-radius:14px;
+  padding:16px;
+  font-weight:900;
+  box-shadow:0 10px 22px rgba(147,129,198,0.18);
+}
+
+@media (max-width:720px){
+  .goalInputs{grid-template-columns:44px 1fr;}
+  .button-row{grid-template-columns:1fr;}
+}

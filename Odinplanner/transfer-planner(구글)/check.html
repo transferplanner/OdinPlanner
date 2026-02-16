@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>체크 DB</title>
+<link id="themeLink" rel="stylesheet" href="">
+<script src="trial.js"></script>
+<script>
+        // 1. trial.js에서 저장된 '색상'을 가져오고
+        const theme = getSavedTheme()|| "pink";
+        // 2. 이 페이지의 '역할(check)'을 조합해서 경로 완성!
+        const themePath = `${theme}/check.css`; 
+        document.getElementById("themeLink").href = themePath;
+    </script>
+
+</head>
+<body>
+
+<div class="container">
+  <div class="back" onclick="location.href='index.html'">← 메인 대시보드로 돌아가기</div>
+  <h1>❌ 체크 DB</h1>
+
+  <div id = "lock-target-area">
+    <div class="topbar">
+      <button class="btn" id="addTopBtn">+ 새로 만들기</button>
+    </div>
+
+    <div class="toggles">
+      <div class="pill" id="subjectPill">
+        <button class="tab active" data-subject="수학">수학</button>
+        <button class="tab" data-subject="영어">영어</button>
+      </div>
+      <div class="pill" id="periodPill">
+        <button class="tab active" data-period="day">일</button>
+        <button class="tab" data-period="week">주</button>
+        <button class="tab" data-period="month">월</button>
+      </div>
+      <div class="refdate">
+        <label>기준일</label>
+        <input id="refDate" type="date" />
+      </div>
+  </div>
+
+    <div class="summary">
+      <div class="card">🔍 자주 실수하는 유형<br><b id="topError">-</b></div>
+      <div class="card">⚠️ 집중 필요 파트<br><b id="topPart">-</b></div>
+    </div>
+
+   <div class="chart-grid">
+  <div class="chart-box" style="position: relative;"> 
+    <canvas id="errorChart"></canvas>
+    <div class="donut-center">
+      <span class="donut-label">총 실수</span>
+      <div id="totalErrorCount" class="donut-number">0</div>
+    </div>
+  </div>
+
+  <div class="chart-box" style="position: relative;">
+    <canvas id="partChart"></canvas>
+    <div class="donut-center">
+      <span class="donut-label">총 실수</span>
+      <div id="totalPartCount" class="donut-number">0</div>
+    </div>
+  </div>
+</div>
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:18%;">기록</th>
+            <th style="width:12%;">과목</th>
+            <th style="width:16%;">파트</th>
+            <th style="width:16%;">실수 유형</th>
+            <th>실수 원인</th>
+            <th style="width:8%;">관리</th>
+          </tr>
+        </thead>
+        <tbody id="checkBody"></tbody>
+      </table>
+  </div>
+</div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+var PARTS = {"수학":["미분","적분","극한","선형대수","편미분","중적분","선적/면적","미방","라플라스","퓨리에"],"영어":["독해","문법","논리","어휘"]};
+var ERRORS = {"수학":["계산 실수","조건 간과","개념 부족","접근방식 모름","타임 오버"],"영어":["해석 실수","단서 누락","어휘 모름","맥락파악 실수","구조파악 실패","사견 넣음","타임 오버"]};
+
+// ✅ 체험 3일 로직 (추가)
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// 메인톤(블루)을 기준으로 파이 차트용 색 여러개 만들기
+function makePalette(){
+  const main = cssVar("--main") || "#4a90e2";
+  const focus = cssVar("--focus") || "#dceeff";
+  const soft = cssVar("--pink") || "#eaf4f8";   // 너 지금 변수명이 pink지만 사실 블루연한톤임
+  const line = cssVar("--line") || "#e3e8ed";
+
+  // 안전빵: 10개 정도
+  return [main, focus, soft, "#9ec5ff", "#b9dcff", "#7fb3ff", "#5aa0ff", "#cfe6ff", "#e9f3ff", "#e9f3ff", line];
+}
+
+let ACTIVE_SUBJECT = "수학";
+let ACTIVE_PERIOD = "day";
+let errorChart, partChart;
+
+
+// 1. 초기화 및 차트 설정
+function initCharts(){
+  const opt = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'bottom'} } };
+  errorChart = new Chart(document.getElementById("errorChart"), { type:"pie", data:{labels:[], datasets:[{data:[]}]}, options:opt });
+  partChart = new Chart(document.getElementById("partChart"), { type:"pie", data:{labels:[], datasets:[{data:[]}]}, options:opt });
+}
+
+// 2. 저장소 키 생성 (날짜/과목별 분리)
+function getBucketKey(){
+  const ymd = document.getElementById("refDate").value;
+  return `checkDB_v2:${ACTIVE_PERIOD}:${ymd}:${ACTIVE_SUBJECT}`;
+}
+
+// 3. 자동 저장 기능
+function saveBucket(){
+  const rows = [];
+  document.querySelectorAll("#checkBody tr").forEach(tr => {
+    rows.push({
+      name: tr.cells[0].innerText,
+      sub: tr.querySelector(".subject").value,
+      part: tr.querySelector(".part").value,
+      error: tr.querySelector(".error").value,
+      desc: tr.cells[4].innerText
+    });
+  });
+  localStorage.setItem(getBucketKey(), JSON.stringify(rows));
+}
+
+// 4. 데이터 로드 및 행 생성
+function loadBucket(){
+  const saved = localStorage.getItem(getBucketKey());
+  const tbody = document.getElementById("checkBody");
+  tbody.innerHTML = "";
+  
+  if(saved){
+    JSON.parse(saved).forEach(data => addRow(data));
+  } else {
+    addRow(); // 데이터 없으면 빈 행 하나 추가
+  }
+  refreshAccessStatus();
+  updateUI();
+}
+
+// 5. 행 추가 기능 (삭제 버튼 포함)
+function addRow(data = null){
+   const rows = JSON.parse(localStorage.getItem(getBucketKey())|| "[]");
+
+   // trial.js에 있는 변수나 함수를 활용해서 한 줄로 정의!
+   const isPaidUser = (localStorage.getItem("isFullVersion") === "true") || (Number(localStorage.getItem("planner-expiry-date") || 0) > Date.now());
+
+   if (!isPaidUser) {
+       if (isTrialExpired() && rows.length >= 3) {
+           // 1. 화면 잠금
+           document.getElementById('lockBox').style.display = 'flex';
+
+           // 2. 구글 결제창 호출
+           if (window.AndroidBridge && window.AndroidBridge.triggerPurchase) {
+               window.AndroidBridge.triggerPurchase();
+           } else {
+               if (typeof openKeyPad === "function") openKeyPad();
+           }
+           return; // 잠금 상태일 땐 데이터 추가 로직 실행 안 함
+       }
+   }
+   
+   // (이후 기존의 데이터 추가 로직...)
+
+  const tbody = document.getElementById("checkBody");
+  const tr = document.createElement("tr");
+  
+  const sub = data ? data.sub : ACTIVE_SUBJECT;
+  const partOptions = (PARTS[sub]||[]).map(x => `<option ${data && data.part===x?'selected':''}>${x}</option>`).join("");
+  const errorOptions = (ERRORS[sub]||[]).map(x => `<option ${data && data.error===x?'selected':''}>${x}</option>`).join("");
+
+  tr.innerHTML = `
+    <td contenteditable="true">${data ? data.name : '새 기록'}</td>
+    <td><select class="subject"><option ${sub==='수학'?'selected':''}>수학</option><option ${sub==='영어'?'selected':''}>영어</option></select></td>
+    <td><select class="part">${partOptions}</select></td>
+    <td><select class="error">${errorOptions}</select></td>
+    <td contenteditable="true">${data ? data.desc : '원인 입력'}</td>
+    <td><button class="del-btn">삭제</button></td>
+  `;
+
+  // 과목 변경 시 파트/실수 옵션 갱신
+  tr.querySelector(".subject").onchange = function(e){
+    const newSub = e.target.value;
+    tr.querySelector(".part").innerHTML = PARTS[newSub].map(x=>`<option>${x}</option>`).join("");
+    tr.querySelector(".error").innerHTML = ERRORS[newSub].map(x=>`<option>${x}</option>`).join("");
+    saveBucket(); updateUI();
+  };
+
+  // 삭제 버튼 이벤트
+  tr.querySelector(".del-btn").onclick = function(){
+    if(confirm("이 기록을 삭제하시겠습니까?")){
+      tr.remove(); saveBucket(); updateUI();
+    }
+  };
+
+  tbody.appendChild(tr);
+}
+
+// 6. 차트 및 요약 업데이트
+function updateUI(){
+  const rows = JSON.parse(localStorage.getItem(getBucketKey()) || "[]");
+    // ✅ 3일 이후 + 3줄부터 락 박스 표시
+
+ 
+  if(!isPaidUser){
+    if (isTrialExpired() && rows.length >= 3) {
+      document.getElementById('lockBox').style.display = 'flex';
+    }
+  }
+
+  const totalCount = rows.length;
+  document.getElementById("totalErrorCount").innerText = totalCount;
+  document.getElementById("totalPartCount").innerText = totalCount;
+
+
+  const eCount = {}, pCount = {};
+
+  rows.forEach(r => {
+    eCount[r.error] = (eCount[r.error] || 0) + 1;
+    pCount[r.part] = (pCount[r.part] || 0) + 1;
+  });
+
+  const updateChart = (chart, counts) => {
+    const labels = Object.keys(counts);
+    
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = labels.map(l => counts[l]);
+    const PAL = makePalette();
+    chart.data.datasets[0].backgroundColor = labels.map((_,i) => PAL[i % PAL.length]);
+    chart.data.datasets[0].borderWidth = 0;
+
+    chart.options.cutout = '70%';
+
+    chart.update();
+  };
+
+  updateChart(errorChart, eCount);
+  updateChart(partChart, pCount);
+
+  const getTop = (obj) => Object.keys(obj).sort((a,b) => obj[b]-obj[a])[0] || "-";
+  document.getElementById("topError").innerText = getTop(eCount);
+  document.getElementById("topPart").innerText = getTop(pCount);
+}
+
+// 7. 이벤트 바인딩
+document.getElementById("addTopBtn").onclick = () => {
+  const rows = JSON.parse(localStorage.getItem(getBucketKey()) || "[]");
+
+  // 1. [수정] VIP라면? 아래의 '검문소'들을 싹 다 무시하고 바로 아래로 내려갑니다.
+  // (여기서 return을 지웠어요!)
+  if (isPaidUser !== true) { 
+      
+      // 2. [검문소 A] 체험판 기간이 아직 남았나요? 남았다면 검문 종료(통과)!
+      if (!isTrialExpired()) {
+          // 통과시켜주기 위해 아무것도 안 하고 아래 addRow()로 보냅니다.
+      } 
+      // 3. [검문소 B] 기간도 끝났고 줄도 2개 넘었나요?
+      else if (rows.length >= 2) {
+          document.getElementById('lockBox').style.display = 'flex';
+          return; // 🚩 오직 '락박스'를 보여줄 때만 여기서 멈춥니다!
+      }
+  }
+
+  // ✨ 드디어 VIP와 일반 통과자들이 만나는 지점!
+  addRow();
+  saveBucket();
+  refreshAccessStatus();
+  updateUI();
+};
+document.getElementById("checkBody").oninput = () => { saveBucket(); updateUI(); };
+document.getElementById("checkBody").onchange = () => { saveBucket(); updateUI(); };
+
+document.querySelectorAll("#subjectPill .tab").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelector("#subjectPill .active").classList.remove("active");
+    btn.classList.add("active"); ACTIVE_SUBJECT = btn.dataset.subject; loadBucket();
+  };
+});
+
+document.querySelectorAll("#periodPill .tab").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelector("#periodPill .active").classList.remove("active");
+    btn.classList.add("active"); ACTIVE_PERIOD = btn.dataset.period; loadBucket();
+  };
+});
+
+document.getElementById("refDate").onchange = loadBucket;
+
+// 8. 실행
+window.onload = () => {
+  const d = new Date();
+  document.getElementById("refDate").value = d.toISOString().split('T')[0];
+  initCharts();
+  loadBucket();
+};
+
+
+</script>
+
+
+
+<div id="lockBox">
+  <div class="lock-inner">
+    <div class="lock-icon">🌸</div>
+    <h2>체험판 만료 알림</h2>
+    <p>사장님의 플래너를 무제한으로 이용하려면<br>정식 버전으로 전환이 필요합니다.</p>
+    
+    
+    <button id="showInputBtn" onclick= "handleAllPayments('com.joseoyeon.transfer_planner.premium_upgrade')">평생 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_monthly_purchase')">1개월 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_three_month_purchase')">3개월 이용권 결제하기 🌸</button>
+    <button id="showInputBtn" onclick="handleAllPayments('transferplanner_six_month_purchase')">6개월 이용권 결제하기 🌸</button>
+
+
+    <button class="btn-close" onclick="document.getElementById('lockBox').style.display='none'">나중에 할게요</button>
+
+  </div>
+</div>
+
+</body>
+</html>
